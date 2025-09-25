@@ -1,90 +1,152 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AESCON Assistant</title>
+    <title>AESCON Chat Widget for SharePoint</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
+        /* Chat Toggle Button */
+        .chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            transition: all 0.3s ease;
+            z-index: 9999;
         }
 
-        .chat-container {
-            width: 90%;
-            max-width: 900px;
-            height: 90vh;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+        .chat-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .chat-toggle.active {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        /* Chat Widget Container */
+        .chat-widget {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 380px;
+            height: 600px;
+            background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            display: flex;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: none;
             flex-direction: column;
             overflow: hidden;
+            z-index: 9998;
+            animation: slideUp 0.3s ease-out;
+            border: 1px solid #e5e7eb;
         }
 
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .chat-widget.show {
+            display: flex;
+        }
+
+        .chat-widget.hide {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+        }
+
+        /* Chat Header */
         .chat-header {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 20px;
-            text-align: center;
-            position: relative;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .chat-header h1 {
-            font-size: 24px;
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-title h3 {
+            margin: 0;
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 5px;
         }
 
-        .chat-header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .status-indicator {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 12px;
-            height: 12px;
+        .chat-title .status {
+            width: 8px;
+            height: 8px;
             background: #4ade80;
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .minimize-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
         }
 
+        .minimize-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Chat Messages */
         .chat-messages {
             flex: 1;
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
+            background: #fafafa;
             scroll-behavior: smooth;
         }
 
         .message {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             display: flex;
             align-items: flex-start;
-            gap: 12px;
+            gap: 10px;
             animation: fadeIn 0.4s ease-out;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -93,17 +155,16 @@
         }
 
         .message-avatar {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             color: white;
-            font-size: 14px;
+            font-size: 12px;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .message.user .message-avatar {
@@ -115,232 +176,113 @@
         }
 
         .message-content {
-            max-width: 75%;
-            padding: 16px 20px;
-            border-radius: 20px;
-            position: relative;
+            max-width: 250px;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
             word-wrap: break-word;
-            line-height: 1.6;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
         }
 
         .message.user .message-content {
             background: linear-gradient(135deg, #667eea, #5a67d8);
             color: white;
-            border-bottom-right-radius: 6px;
+            border-bottom-right-radius: 4px;
         }
 
         .message.ai .message-content {
-            background: #ffffff;
+            background: white;
             color: #2d3748;
-            border-bottom-left-radius: 6px;
-            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        /* Enhanced text formatting */
-        .message-content p {
-            margin-bottom: 8px;
-            text-align: justify;
-        }
-
-        .message-content p:last-child {
-            margin-bottom: 0;
-        }
-
-        .message-content ul, .message-content ol {
-            margin: 8px 0;
-            padding-left: 20px;
-        }
-
-        .message-content li {
-            margin-bottom: 4px;
-        }
-
-        .message-content code {
-            background: rgba(99, 102, 241, 0.1);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Monaco', 'Consolas', 'Ubuntu Mono', monospace;
-            font-size: 0.9em;
-        }
-
-        .message-content pre {
-            background: #f7fafc;
-            padding: 12px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 8px 0;
-            border-left: 4px solid #667eea;
-        }
-
-        .message-content blockquote {
-            border-left: 4px solid #e2e8f0;
-            padding-left: 16px;
-            margin: 8px 0;
-            font-style: italic;
-            color: #718096;
-        }
-
-        .message-content strong {
-            font-weight: 600;
-            color: #2d3748;
-        }
-
-        .message-content em {
-            font-style: italic;
-            color: #4a5568;
-        }
-
-        .message-image {
-            max-width: 280px;
-            max-height: 280px;
-            border-radius: 12px;
-            margin-top: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .message-image:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
+        /* Chat Input */
         .chat-input {
-            padding: 20px;
+            padding: 16px;
             background: white;
             border-top: 1px solid #e5e7eb;
         }
 
         .input-container {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: flex-end;
         }
 
         .message-input {
             flex: 1;
-            min-height: 48px;
-            max-height: 140px;
-            padding: 14px 18px;
-            border: 2px solid #e2e8f0;
-            border-radius: 24px;
-            font-size: 15px;
+            min-height: 36px;
+            max-height: 100px;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 18px;
+            font-size: 14px;
             resize: none;
             outline: none;
             transition: all 0.2s;
             font-family: inherit;
-            background: #fafafa;
         }
 
         .message-input:focus {
             border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
         }
 
-        .input-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .file-input {
-            position: absolute;
-            left: -9999px;
-        }
-
-        .file-button, .send-button {
-            width: 48px;
-            height: 48px;
+        .send-button {
+            width: 36px;
+            height: 36px;
             border: none;
             border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #5a67d8);
+            color: white;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
             transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .file-button {
-            background: #f7fafc;
-            color: #4a5568;
-        }
-
-        .file-button:hover {
-            background: #edf2f7;
-            transform: scale(1.05);
-        }
-
-        .send-button {
-            background: linear-gradient(135deg, #667eea, #5a67d8);
-            color: white;
+            font-size: 16px;
         }
 
         .send-button:hover:not(:disabled) {
             transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         .send-button:disabled {
             background: #cbd5e0;
             cursor: not-allowed;
-            transform: none;
         }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f4f6;
-            border-radius: 50%;
-            border-top-color: #667eea;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
+        /* Typing Indicator */
         .typing-indicator {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 16px 20px;
+            gap: 8px;
+            padding: 12px 16px;
             background: white;
-            border-radius: 20px;
-            border-bottom-left-radius: 6px;
-            max-width: 75%;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            max-width: 250px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+            color: #6b7280;
         }
 
         .typing-dots {
             display: flex;
-            gap: 4px;
+            gap: 3px;
         }
 
         .typing-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             background: #667eea;
             border-radius: 50%;
             animation: typingDot 1.4s infinite ease-in-out;
         }
 
-        .typing-dot:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .typing-dot:nth-child(3) {
-            animation-delay: 0.4s;
-        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
         @keyframes typingDot {
             0%, 60%, 100% {
@@ -348,88 +290,69 @@
                 opacity: 0.4;
             }
             30% {
-                transform: translateY(-8px);
+                transform: translateY(-6px);
                 opacity: 1;
             }
         }
 
-        .error-message {
-            background: linear-gradient(135deg, #fed7d7, #feb2b2);
-            color: #c53030;
-            border: 1px solid #fc8181;
-            border-radius: 20px;
-            padding: 16px 20px;
-            max-width: 75%;
-            box-shadow: 0 2px 8px rgba(197, 48, 48, 0.1);
+        /* Responsive */
+        @media (max-width: 480px) {
+            .chat-widget {
+                width: calc(100vw - 20px);
+                height: calc(100vh - 120px);
+                right: 10px;
+                bottom: 80px;
+            }
+            
+            .chat-toggle {
+                right: 15px;
+                bottom: 15px;
+            }
         }
 
-        /* Scrollbar styling */
+        /* Scrollbar */
         .chat-messages::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
 
         .chat-messages::-webkit-scrollbar-track {
             background: #f1f1f1;
-            border-radius: 10px;
         }
 
         .chat-messages::-webkit-scrollbar-thumb {
             background: #667eea;
-            border-radius: 10px;
+            border-radius: 2px;
         }
 
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #5a67d8;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
-
-        @media (max-width: 768px) {
-            .chat-container {
-                width: 100%;
-                height: 100vh;
-                border-radius: 0;
-            }
-            
-            .message-content {
-                max-width: 85%;
-            }
-
-            .message-input {
-                font-size: 16px; /* Prevent zoom on iOS */
-            }
-        }
-
-        /* Markdown-like formatting */
-        .formatted-text h1, .formatted-text h2, .formatted-text h3 {
-            font-weight: 600;
-            margin: 16px 0 8px 0;
-            color: #2d3748;
-        }
-
-        .formatted-text h1 { font-size: 1.5em; }
-        .formatted-text h2 { font-size: 1.3em; }
-        .formatted-text h3 { font-size: 1.1em; }
     </style>
 </head>
 <body>
-    <div class="chat-container">
+    <!-- Chat Toggle Button -->
+    <button class="chat-toggle" id="chatToggle" title="เปิด/ปิด AESCON Chat">
+        💬
+    </button>
+
+    <!-- Chat Widget -->
+    <div class="chat-widget" id="chatWidget">
         <div class="chat-header">
-            <div class="status-indicator"></div>
-            <h1>AESCON AI Assistant</h1>
-            <p>Meet your assistant for more efficient work.</p>
+            <div class="chat-title">
+                <span class="status"></span>
+                <h3>AESCON Assistant</h3>
+            </div>
+            <button class="minimize-btn" id="minimizeBtn">−</button>
         </div>
         
         <div class="chat-messages" id="chatMessages">
             <div class="message ai">
                 <div class="message-avatar">AI</div>
-                <div class="message-content formatted-text">
-                    <p><strong>สวัสดีค่ะ ยินดีต้อนรับสู่ AESCON AI Assistant!</strong> ผู้ช่วยงานข้อมูลของท่าน</p>
-                    <p>พร้อมสนับสนุนและให้ความช่วยเหลือ:</p>
-                    <ul>
-                        <li>การค้นหาข้อมูลในเอกสาร</li>
-                        <li>ตอบคำถามเกี่ยวกับบริษัท</li>
-                        <li>สรุปข้อมูลแบบมืออาชีพ</li>
-                    </ul>
-                    <p>คุณสามารถถามคำถามหรือแชทกับฉันได้เลยค่ะ! 😊</p>
+                <div class="message-content">
+                    <strong>สวัสดีครับ!</strong><br>
+                    ผมเป็น AESCON AI Assistant พร้อมช่วยงานข้อมูลของท่าน<br>
+                    มีอะไรให้ช่วยไหมครับ? 😊
                 </div>
             </div>
         </div>
@@ -442,37 +365,69 @@
                     placeholder="พิมพ์ข้อความของคุณ..."
                     rows="1"
                 ></textarea>
-                <div class="input-buttons">
-                    <div class="file-input-wrapper">
-                        <input type="file" id="fileInput" class="file-input" accept="image/*">
-                        <button class="file-button" onclick="document.getElementById('fileInput').click()" title="แนบรูปภาพ">
-                            📷
-                        </button>
-                    </div>
-                    <button class="send-button" id="sendButton" onclick="sendMessage()" title="ส่งข้อความ">
-                        ➤
-                    </button>
-                </div>
+                <button class="send-button" id="sendButton" title="ส่งข้อความ">
+                    ➤
+                </button>
             </div>
         </div>
     </div>
 
     <script>
+        // Configuration
         const WEBHOOK_URL = 'https://circularly-shopsoiled-kendrick.ngrok-free.app/webhook/a77cee2b-3cc2-4468-90aa-825952d2a0b3/chat';
+        
+        // DOM Elements
+        const chatToggle = document.getElementById('chatToggle');
+        const chatWidget = document.getElementById('chatWidget');
+        const minimizeBtn = document.getElementById('minimizeBtn');
         const chatMessages = document.getElementById('chatMessages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
-        const fileInput = document.getElementById('fileInput');
 
+        let isOpen = false;
         let isTyping = false;
+
+        // Toggle Chat
+        chatToggle.addEventListener('click', toggleChat);
+        minimizeBtn.addEventListener('click', closeChat);
+
+        function toggleChat() {
+            if (isOpen) {
+                closeChat();
+            } else {
+                openChat();
+            }
+        }
+
+        function openChat() {
+            chatWidget.classList.add('show');
+            chatToggle.classList.add('active');
+            chatToggle.innerHTML = '✕';
+            isOpen = true;
+            
+            // Focus input after animation
+            setTimeout(() => {
+                messageInput.focus();
+            }, 300);
+        }
+
+        function closeChat() {
+            chatWidget.classList.add('hide');
+            setTimeout(() => {
+                chatWidget.classList.remove('show', 'hide');
+                chatToggle.classList.remove('active');
+                chatToggle.innerHTML = '💬';
+                isOpen = false;
+            }, 300);
+        }
 
         // Auto-resize textarea
         messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
         });
 
-        // Send message on Enter (but not Shift+Enter)
+        // Send on Enter
         messageInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -480,88 +435,10 @@
             }
         });
 
-        // Handle file selection
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                previewImage(file);
-            }
-        });
+        // Send button click
+        sendButton.addEventListener('click', sendMessage);
 
-        function previewImage(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                addMessage('user', '', e.target.result);
-                sendImageMessage(file);
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // Parse API response and extract actual content
-        function parseAPIResponse(responseText) {
-            try {
-                // Try to parse as JSON first
-                const parsed = JSON.parse(responseText);
-                
-                // Extract output field if it exists
-                if (parsed.output) {
-                    return parsed.output;
-                }
-                
-                // If it's a different JSON structure, return the main content
-                if (parsed.response) return parsed.response;
-                if (parsed.message) return parsed.message;
-                if (parsed.text) return parsed.text;
-                if (parsed.content) return parsed.content;
-                
-                // If JSON but no recognizable field, stringify it nicely
-                return JSON.stringify(parsed, null, 2);
-                
-            } catch (e) {
-                // If not valid JSON, return as plain text
-                return responseText;
-            }
-        }
-
-        // Enhanced text formatting function
-        function formatText(text) {
-            if (!text) return '';
-            
-            // First parse API response to extract clean content
-            const cleanText = parseAPIResponse(text);
-            
-            // Convert line breaks to paragraphs
-            let formatted = cleanText.replace(/\n\n+/g, '</p><p>');
-            formatted = '<p>' + formatted + '</p>';
-            
-            // Format bold text **text**
-            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            
-            // Format italic text *text*
-            formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            
-            // Format inline code `code`
-            formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>');
-            
-            // Format headers
-            formatted = formatted.replace(/^### (.*$)/gm, '<h3>$1</h3>');
-            formatted = formatted.replace(/^## (.*$)/gm, '<h2>$1</h2>');
-            formatted = formatted.replace(/^# (.*$)/gm, '<h1>$1</h1>');
-            
-            // Format bullet points
-            formatted = formatted.replace(/^\- (.*$)/gm, '<li>$1</li>');
-            formatted = formatted.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
-            
-            // Format numbered lists
-            formatted = formatted.replace(/^\d+\. (.*$)/gm, '<li>$1</li>');
-            
-            // Clean up empty paragraphs
-            formatted = formatted.replace(/<p><\/p>/g, '');
-            
-            return formatted;
-        }
-
-        function addMessage(sender, text, imageUrl = null) {
+        function addMessage(sender, text) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}`;
             
@@ -570,19 +447,8 @@
             avatar.textContent = sender === 'user' ? 'You' : 'AI';
             
             const content = document.createElement('div');
-            content.className = 'message-content formatted-text';
-            
-            if (text) {
-                content.innerHTML = formatText(text);
-            }
-            
-            if (imageUrl) {
-                const img = document.createElement('img');
-                img.src = imageUrl;
-                img.className = 'message-image';
-                img.onclick = () => window.open(imageUrl, '_blank');
-                content.appendChild(img);
-            }
+            content.className = 'message-content';
+            content.innerHTML = formatText(text);
             
             messageDiv.appendChild(avatar);
             messageDiv.appendChild(content);
@@ -603,7 +469,7 @@
             const indicator = document.createElement('div');
             indicator.className = 'typing-indicator';
             indicator.innerHTML = `
-                <span>AI กำลังพิมพ์...</span>
+                กำลังพิมพ์...
                 <div class="typing-dots">
                     <div class="typing-dot"></div>
                     <div class="typing-dot"></div>
@@ -627,23 +493,26 @@
             isTyping = false;
         }
 
-        function addErrorMessage(error) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message ai';
+        function formatText(text) {
+            if (!text) return '';
             
-            const avatar = document.createElement('div');
-            avatar.className = 'message-avatar';
-            avatar.textContent = 'AI';
+            // Parse API response
+            let cleanText = text;
+            try {
+                const parsed = JSON.parse(text);
+                if (parsed.output) cleanText = parsed.output;
+                else if (parsed.response) cleanText = parsed.response;
+                else if (parsed.message) cleanText = parsed.message;
+            } catch (e) {
+                // Use as plain text if not JSON
+            }
             
-            const content = document.createElement('div');
-            content.className = 'error-message';
-            content.innerHTML = `<strong>ขออภัยครับ เกิดข้อผิดพลาด:</strong> ${error}`;
+            // Basic formatting
+            let formatted = cleanText.replace(/\n/g, '<br>');
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
             
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(content);
-            
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
+            return formatted;
         }
 
         function scrollToBottom() {
@@ -683,49 +552,22 @@
 
             } catch (error) {
                 removeTypingIndicator();
-                addErrorMessage(error.message);
+                addMessage('ai', `ขออภัยครับ เกิดข้อผิดพลาด: ${error.message}`);
             } finally {
                 sendButton.disabled = false;
             }
         }
 
-        async function sendImageMessage(imageFile) {
-            if (isTyping) return;
-
-            addTypingIndicator();
-            sendButton.disabled = true;
-
-            try {
-                const formData = new FormData();
-                formData.append('image', imageFile);
-                formData.append('message', 'ได้แชร์รูปภาพแล้ว');
-
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                removeTypingIndicator();
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const result = await response.text();
-                addMessage('ai', result || 'ขอบคุณสำหรับรูปภาพครับ!');
-
-            } catch (error) {
-                removeTypingIndicator();
-                addErrorMessage(error.message);
-            } finally {
-                sendButton.disabled = false;
-                fileInput.value = '';
+        // Close chat when clicking outside (optional)
+        document.addEventListener('click', function(e) {
+            if (isOpen && !chatWidget.contains(e.target) && !chatToggle.contains(e.target)) {
+                // Uncomment next line if you want to close on outside click
+                // closeChat();
             }
-        }
+        });
 
         // Initialize
-        scrollToBottom();
-        showFormattingDemo();
+        console.log('AESCON Chat Widget initialized');
     </script>
 </body>
 </html>
