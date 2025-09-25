@@ -5,31 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AESCON Chat Widget for SharePoint</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Main Container */
-        .chat-widget-container {
-            position: relative;
-            width: 100%;
-            height: 80px;
-            overflow: visible;
-            z-index: 9999;
-        }
-
         /* Chat Toggle Button */
         .chat-toggle {
-            position: absolute;
-            bottom: 10px;
+            position: fixed;
+            bottom: 20px;
             right: 20px;
             width: 60px;
             height: 60px;
@@ -44,7 +23,7 @@
             font-size: 24px;
             color: white;
             transition: all 0.3s ease;
-            z-index: 10001;
+            z-index: 9999;
         }
 
         .chat-toggle:hover {
@@ -54,34 +33,32 @@
 
         .chat-toggle.active {
             background: linear-gradient(135deg, #ef4444, #dc2626);
-            transform: rotate(45deg);
         }
 
-        /* Chat Widget */
+        /* Chat Widget Container */
         .chat-widget {
-            position: absolute;
-            bottom: 80px;
+            position: fixed;
+            bottom: 90px;
             right: 20px;
             width: 380px;
             height: 600px;
             background: white;
             border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
             display: none;
             flex-direction: column;
             overflow: hidden;
-            z-index: 10000;
+            z-index: 9998;
+            animation: slideUp 0.3s ease-out;
             border: 1px solid #e5e7eb;
-            transform-origin: bottom right;
-            animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         @keyframes slideUp {
-            0% {
+            from {
                 opacity: 0;
-                transform: translateY(20px) scale(0.8);
+                transform: translateY(20px) scale(0.95);
             }
-            100% {
+            to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
             }
@@ -92,17 +69,17 @@
         }
 
         .chat-widget.hide {
-            animation: slideDown 0.2s ease-out forwards;
+            animation: slideDown 0.3s ease-out;
         }
 
         @keyframes slideDown {
-            0% {
+            from {
                 opacity: 1;
                 transform: translateY(0) scale(1);
             }
-            100% {
+            to {
                 opacity: 0;
-                transform: translateY(10px) scale(0.95);
+                transform: translateY(20px) scale(0.95);
             }
         }
 
@@ -114,7 +91,6 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-shrink: 0;
         }
 
         .chat-title {
@@ -129,7 +105,7 @@
             font-weight: 600;
         }
 
-        .status-dot {
+        .chat-title .status {
             width: 8px;
             height: 8px;
             background: #4ade80;
@@ -137,26 +113,19 @@
             animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(0.95); }
-        }
-
-        .close-btn {
+        .minimize-btn {
             background: none;
             border: none;
             color: white;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             padding: 4px 8px;
             border-radius: 4px;
-            transition: all 0.2s;
-            line-height: 1;
+            transition: background 0.2s;
         }
 
-        .close-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: scale(1.1);
+        .minimize-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         /* Chat Messages */
@@ -164,7 +133,7 @@
             flex: 1;
             padding: 16px;
             overflow-y: auto;
-            background: linear-gradient(180deg, #fafafa 0%, #f8f9fa 100%);
+            background: #fafafa;
             scroll-behavior: smooth;
         }
 
@@ -173,18 +142,12 @@
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            animation: messageSlide 0.4s ease-out;
+            animation: fadeIn 0.4s ease-out;
         }
 
-        @keyframes messageSlide {
-            0% { 
-                opacity: 0; 
-                transform: translateY(15px); 
-            }
-            100% { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
@@ -198,11 +161,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
+            font-weight: bold;
             color: white;
-            font-size: 11px;
+            font-size: 12px;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .message.user .message-avatar {
@@ -214,68 +176,62 @@
         }
 
         .message-content {
-            max-width: 260px;
+            max-width: 250px;
             padding: 12px 16px;
-            border-radius: 18px;
+            border-radius: 16px;
             font-size: 14px;
             line-height: 1.5;
             word-wrap: break-word;
-            position: relative;
         }
 
         .message.user .message-content {
             background: linear-gradient(135deg, #667eea, #5a67d8);
             color: white;
-            border-bottom-right-radius: 6px;
-            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.3);
+            border-bottom-right-radius: 4px;
         }
 
         .message.ai .message-content {
             background: white;
             color: #2d3748;
-            border-bottom-left-radius: 6px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-            border: 1px solid #f0f0f0;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         /* Chat Input */
         .chat-input {
-            padding: 16px 20px;
+            padding: 16px;
             background: white;
             border-top: 1px solid #e5e7eb;
-            flex-shrink: 0;
         }
 
         .input-container {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: flex-end;
         }
 
         .message-input {
             flex: 1;
-            min-height: 40px;
+            min-height: 36px;
             max-height: 100px;
-            padding: 10px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 20px;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 18px;
             font-size: 14px;
             resize: none;
             outline: none;
             transition: all 0.2s;
             font-family: inherit;
-            background: #fafafa;
         }
 
         .message-input:focus {
             border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
         }
 
         .send-button {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border: none;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea, #5a67d8);
@@ -286,35 +242,30 @@
             justify-content: center;
             transition: all 0.2s;
             font-size: 16px;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         .send-button:hover:not(:disabled) {
             transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         .send-button:disabled {
             background: #cbd5e0;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
 
         /* Typing Indicator */
         .typing-indicator {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             padding: 12px 16px;
             background: white;
-            border-radius: 18px;
-            border-bottom-left-radius: 6px;
-            max-width: 260px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-            font-size: 13px;
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            max-width: 250px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-size: 12px;
             color: #6b7280;
-            border: 1px solid #f0f0f0;
         }
 
         .typing-dots {
@@ -327,63 +278,35 @@
             height: 6px;
             background: #667eea;
             border-radius: 50%;
-            animation: typingBounce 1.4s infinite ease-in-out;
+            animation: typingDot 1.4s infinite ease-in-out;
         }
 
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-        @keyframes typingBounce {
+        @keyframes typingDot {
             0%, 60%, 100% {
                 transform: translateY(0);
                 opacity: 0.4;
             }
             30% {
-                transform: translateY(-8px);
+                transform: translateY(-6px);
                 opacity: 1;
             }
         }
 
-        /* Notification Badge */
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 20px;
-            height: 20px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            font-size: 12px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid white;
-            animation: badgeBounce 0.5s ease-out;
-        }
-
-        @keyframes badgeBounce {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
         /* Responsive */
-        @media screen and (max-width: 480px) {
+        @media (max-width: 480px) {
             .chat-widget {
-                width: calc(100vw - 40px);
-                height: 500px;
-                right: 20px;
-                left: 20px;
+                width: calc(100vw - 20px);
+                height: calc(100vh - 120px);
+                right: 10px;
+                bottom: 80px;
             }
             
             .chat-toggle {
-                right: 20px;
-            }
-            
-            .message-content {
-                max-width: 220px;
+                right: 15px;
+                bottom: 15px;
             }
         }
 
@@ -393,86 +316,58 @@
         }
 
         .chat-messages::-webkit-scrollbar-track {
-            background: transparent;
+            background: #f1f1f1;
         }
 
         .chat-messages::-webkit-scrollbar-thumb {
-            background: rgba(102, 126, 234, 0.3);
+            background: #667eea;
             border-radius: 2px;
         }
 
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: rgba(102, 126, 234, 0.5);
-        }
-
-        /* Welcome message styling */
-        .welcome-message {
-            text-align: center;
-            padding: 20px;
-            color: #6b7280;
-            font-size: 13px;
-            border-bottom: 1px solid #f0f0f0;
-            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-        }
-
-        .welcome-message .icon {
-            font-size: 24px;
-            margin-bottom: 8px;
-            display: block;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
 <body>
-    <div class="chat-widget-container">
-        <!-- Chat Toggle Button -->
-        <button class="chat-toggle" id="chatToggle" title="เปิด AESCON Chat Assistant">
-            <span id="toggleIcon">💬</span>
-            <div class="notification-badge" id="notificationBadge" style="display: none;">1</div>
-        </button>
+    <!-- Chat Toggle Button -->
+    <button class="chat-toggle" id="chatToggle" title="เปิด/ปิด AESCON Chat">
+        💬
+    </button>
 
-        <!-- Chat Widget -->
-        <div class="chat-widget" id="chatWidget">
-            <div class="chat-header">
-                <div class="chat-title">
-                    <div class="status-dot"></div>
-                    <h3>AESCON Assistant</h3>
-                </div>
-                <button class="close-btn" id="closeBtn" title="ปิดแชท">×</button>
+    <!-- Chat Widget -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header">
+            <div class="chat-title">
+                <span class="status"></span>
+                <h3>AESCON Assistant</h3>
             </div>
-
-            <div class="welcome-message">
-                <span class="icon">🤖</span>
-                <strong>ยินดีต้อนรับสู่ AESCON AI Assistant</strong><br>
-                พร้อมให้คำปรึกษาและช่วยเหลืองานของคุณ
-            </div>
-            
-            <div class="chat-messages" id="chatMessages">
-                <div class="message ai">
-                    <div class="message-avatar">AI</div>
-                    <div class="message-content">
-                        <strong>สวัสดีครับ!</strong><br>
-                        ผมเป็น AESCON AI Assistant พร้อมช่วยงานข้อมูลของท่าน<br><br>
-                        สามารถถามเกี่ยวกับ:
-                        <br>• การค้นหาข้อมูลในเอกสาร
-                        <br>• การวิเคราะห์และสรุปข้อมูล  
-                        <br>• คำแนะนำการทำงาน<br><br>
-                        มีอะไรให้ช่วยไหมครับ? 😊
-                    </div>
+            <button class="minimize-btn" id="minimizeBtn">−</button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai">
+                <div class="message-avatar">AI</div>
+                <div class="message-content">
+                    <strong>สวัสดีครับ!</strong><br>
+                    ผมเป็น AESCON AI Assistant พร้อมช่วยงานข้อมูลของท่าน<br>
+                    มีอะไรให้ช่วยไหมครับ? 😊
                 </div>
             </div>
-            
-            <div class="chat-input">
-                <div class="input-container">
-                    <textarea 
-                        id="messageInput" 
-                        class="message-input" 
-                        placeholder="พิมพ์ข้อความของคุณ..."
-                        rows="1"
-                    ></textarea>
-                    <button class="send-button" id="sendButton" title="ส่งข้อความ">
-                        ➤
-                    </button>
-                </div>
+        </div>
+        
+        <div class="chat-input">
+            <div class="input-container">
+                <textarea 
+                    id="messageInput" 
+                    class="message-input" 
+                    placeholder="พิมพ์ข้อความของคุณ..."
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="sendButton" title="ส่งข้อความ">
+                    ➤
+                </button>
             </div>
         </div>
     </div>
@@ -483,21 +378,18 @@
         
         // DOM Elements
         const chatToggle = document.getElementById('chatToggle');
-        const toggleIcon = document.getElementById('toggleIcon');
         const chatWidget = document.getElementById('chatWidget');
-        const closeBtn = document.getElementById('closeBtn');
+        const minimizeBtn = document.getElementById('minimizeBtn');
         const chatMessages = document.getElementById('chatMessages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
-        const notificationBadge = document.getElementById('notificationBadge');
 
         let isOpen = false;
         let isTyping = false;
-        let hasNewMessages = false;
 
-        // Event Listeners
+        // Toggle Chat
         chatToggle.addEventListener('click', toggleChat);
-        closeBtn.addEventListener('click', closeChat);
+        minimizeBtn.addEventListener('click', closeChat);
 
         function toggleChat() {
             if (isOpen) {
@@ -510,12 +402,8 @@
         function openChat() {
             chatWidget.classList.add('show');
             chatToggle.classList.add('active');
-            toggleIcon.innerHTML = '×';
+            chatToggle.innerHTML = '✕';
             isOpen = true;
-            
-            // Hide notification badge
-            notificationBadge.style.display = 'none';
-            hasNewMessages = false;
             
             // Focus input after animation
             setTimeout(() => {
@@ -528,9 +416,9 @@
             setTimeout(() => {
                 chatWidget.classList.remove('show', 'hide');
                 chatToggle.classList.remove('active');
-                toggleIcon.innerHTML = '💬';
+                chatToggle.innerHTML = '💬';
                 isOpen = false;
-            }, 200);
+            }, 300);
         }
 
         // Auto-resize textarea
@@ -567,11 +455,6 @@
             
             chatMessages.appendChild(messageDiv);
             scrollToBottom();
-
-            // Show notification if chat is closed and it's an AI message
-            if (!isOpen && sender === 'ai') {
-                showNotification();
-            }
         }
 
         function addTypingIndicator() {
@@ -610,19 +493,6 @@
             isTyping = false;
         }
 
-        function showNotification() {
-            if (!hasNewMessages) {
-                notificationBadge.style.display = 'flex';
-                hasNewMessages = true;
-                
-                // Add bounce effect to toggle button
-                chatToggle.style.animation = 'none';
-                setTimeout(() => {
-                    chatToggle.style.animation = 'badgeBounce 0.5s ease-out';
-                }, 10);
-            }
-        }
-
         function formatText(text) {
             if (!text) return '';
             
@@ -641,7 +511,6 @@
             let formatted = cleanText.replace(/\n/g, '<br>');
             formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            formatted = formatted.replace(/`(.*?)`/g, '<code style="background: rgba(102,126,234,0.1); padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 0.9em;">$1</code>');
             
             return formatted;
         }
@@ -683,21 +552,22 @@
 
             } catch (error) {
                 removeTypingIndicator();
-                addMessage('ai', `ขออภัยครับ เกิดข้อผิดพลาด: ${error.message}<br><br>กรุณาลองใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ`);
+                addMessage('ai', `ขออภัยครับ เกิดข้อผิดพลาด: ${error.message}`);
             } finally {
                 sendButton.disabled = false;
             }
         }
 
-        // Initialize
-        console.log('AESCON Chat Widget สำหรับ SharePoint พร้อมใช้งาน');
-        
-        // Auto-show welcome after 3 seconds (optional)
-        setTimeout(() => {
-            if (!isOpen && !hasNewMessages) {
-                showNotification();
+        // Close chat when clicking outside (optional)
+        document.addEventListener('click', function(e) {
+            if (isOpen && !chatWidget.contains(e.target) && !chatToggle.contains(e.target)) {
+                // Uncomment next line if you want to close on outside click
+                // closeChat();
             }
-        }, 3000);
+        });
+
+        // Initialize
+        console.log('AESCON Chat Widget initialized');
     </script>
 </body>
 </html>
