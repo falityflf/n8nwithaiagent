@@ -381,6 +381,18 @@
         // Configuration
         const WEBHOOK_URL = 'https://n8nv1.zethn8n.work/webhook/953c7856-8ba0-45cd-9540-c29fb6a785d7/chat';
         
+        // Generate or retrieve session ID
+        function getSessionId() {
+            let sessionId = sessionStorage.getItem('aescon_session_id');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('aescon_session_id', sessionId);
+            }
+            return sessionId;
+        }
+        
+        const SESSION_ID = getSessionId();
+
         // DOM Elements
         const chatToggle = document.getElementById('chatToggle');
         const chatWidget = document.getElementById('chatWidget');
