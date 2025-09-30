@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AESCON Chat Widget for SharePoint</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
         /* Chat Toggle Button */
         .chat-toggle {
             position: fixed;
@@ -197,6 +207,27 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
+        .message-content ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .message-content li {
+            margin: 4px 0;
+        }
+
+        .message-content p {
+            margin: 8px 0;
+        }
+
+        .message-content p:first-child {
+            margin-top: 0;
+        }
+
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+
         /* Chat Input */
         .chat-input {
             padding: 16px;
@@ -381,18 +412,6 @@
         // Configuration
         const WEBHOOK_URL = 'https://n8nv1.zethn8n.work/webhook/953c7856-8ba0-45cd-9540-c29fb6a785d7/chat';
         
-        // Generate or retrieve session ID
-        function getSessionId() {
-            let sessionId = sessionStorage.getItem('aescon_session_id');
-            if (!sessionId) {
-                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                sessionStorage.setItem('aescon_session_id', sessionId);
-            }
-            return sessionId;
-        }
-        
-        const SESSION_ID = getSessionId();
-        
         // DOM Elements
         const chatToggle = document.getElementById('chatToggle');
         const chatWidget = document.getElementById('chatWidget');
@@ -422,7 +441,6 @@
             chatToggle.innerHTML = '✕';
             isOpen = true;
             
-            // Focus input after animation
             setTimeout(() => {
                 messageInput.focus();
             }, 300);
@@ -513,7 +531,6 @@
         function formatText(text) {
             if (!text) return '';
             
-            // Parse API response
             let cleanText = text;
             try {
                 const parsed = JSON.parse(text);
@@ -521,11 +538,16 @@
                 else if (parsed.response) cleanText = parsed.response;
                 else if (parsed.message) cleanText = parsed.message;
             } catch (e) {
-                // Use as plain text if not JSON
+                // Use text as-is if not JSON
             }
             
-            // Basic formatting
-            let formatted = cleanText.replace(/\n/g, '<br>');
+            // Escape HTML
+            const div = document.createElement('div');
+            div.textContent = cleanText;
+            let formatted = div.innerHTML;
+            
+            // Basic markdown formatting
+            formatted = formatted.replace(/\n/g, '<br>');
             formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
             
@@ -569,22 +591,15 @@
 
             } catch (error) {
                 removeTypingIndicator();
-                addMessage('ai', `ขออภัยค่ะ เกิดข้อผิดพลาด: ${error.message}`);
+                addMessage('ai', `ขอภัยค่ะ เกิดข้อผิดพลาด: ${error.message}`);
+                console.error('Error:', error);
             } finally {
                 sendButton.disabled = false;
             }
         }
 
-        // Close chat when clicking outside (optional)
-        document.addEventListener('click', function(e) {
-            if (isOpen && !chatWidget.contains(e.target) && !chatToggle.contains(e.target)) {
-                // Uncomment next line if you want to close on outside click
-                // closeChat();
-            }
-        });
-
         // Initialize
-        console.log('AESCON Chat Widget initialized');
+        console.log('AESCON Chat Widget initialized successfully');
     </script>
 </body>
 </html>
