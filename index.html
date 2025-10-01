@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AESCON Multi-Model Toggle Chat</title>
+    <title>AESCON Multi-Department Chat</title>
     <style>
         * {
             margin: 0;
@@ -17,7 +17,6 @@
             padding: 0;
         }
 
-        /* Main Container - Fixed Position */
         .chat-widget-container {
             position: fixed;
             bottom: 20px;
@@ -25,7 +24,6 @@
             z-index: 9999;
         }
 
-        /* Chat Toggle Button */
         .chat-toggle {
             width: 60px;
             height: 60px;
@@ -54,13 +52,12 @@
             transform: rotate(45deg);
         }
 
-        /* Chat Widget */
         .chat-widget {
             position: absolute;
             bottom: 70px;
             right: 0;
-            width: 400px;
-            height: 650px;
+            width: 420px;
+            height: 680px;
             background: white;
             border-radius: 20px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
@@ -73,40 +70,18 @@
         }
 
         @keyframes slideUp {
-            0% {
-                opacity: 0;
-                transform: translateY(20px) scale(0.8);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .chat-widget.show {
             display: flex;
         }
 
-        .chat-widget.hide {
-            animation: slideDown 0.2s ease-out forwards;
-        }
-
-        @keyframes slideDown {
-            0% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(10px) scale(0.95);
-            }
-        }
-
-        /* Chat Header */
         .chat-header {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 16px 20px;
+            padding: 16px 20px 12px;
             flex-shrink: 0;
         }
 
@@ -156,59 +131,108 @@
 
         .close-btn:hover {
             background: rgba(255, 255, 255, 0.15);
-            transform: scale(1.1);
         }
 
-        /* Model Selector */
-        .model-selector {
+        /* Dropdown Department Selector */
+        .dept-selector-wrapper {
+            margin-bottom: 10px;
+        }
+
+        .dept-dropdown {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+            padding-right: 40px;
+        }
+
+        .dept-dropdown:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .dept-dropdown:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+
+        .dept-dropdown option {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+        }
+
+        /* Mascot Display */
+        .chat-mascot {
             display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .mascot-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            padding: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .mascot-greeting {
+            margin-left: 12px;
+            flex: 1;
+        }
+
+        .mascot-greeting-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .mascot-greeting-text {
+            font-size: 10px;
+            opacity: 0.9;
+        }
+
+        /* Current Selection Display */
+        .current-selection {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 11px;
+            backdrop-filter: blur(10px);
             margin-bottom: 8px;
         }
 
-        .model-btn {
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            color: white;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            backdrop-filter: blur(10px);
+        .current-dept {
+            font-weight: 600;
+            margin-bottom: 4px;
         }
 
-        .model-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-1px);
+        .current-ai {
+            opacity: 0.9;
+            font-size: 10px;
         }
 
-        .model-btn.active {
-            background: rgba(255, 255, 255, 0.9);
-            color: #667eea;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border-color: rgba(255, 255, 255, 0.8);
-        }
-
-        .model-btn .icon {
-            margin-right: 4px;
-        }
-
-        /* Current Model Display */
-        .current-model {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 11px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        /* AI Model Selector (for General model) */
+        /* AI Model Selector */
         .ai-model-selector {
-            margin-top: 8px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             padding: 8px;
@@ -228,14 +252,12 @@
 
         .ai-model-options {
             display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
+            gap: 6px;
         }
 
         .ai-model-option {
             flex: 1;
-            min-width: 70px;
-            padding: 4px 8px;
+            padding: 6px 10px;
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
@@ -249,17 +271,14 @@
 
         .ai-model-option:hover {
             background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-1px);
         }
 
         .ai-model-option.active {
             background: rgba(255, 255, 255, 0.9);
             color: #667eea;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            border-color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Chat Messages */
         .chat-messages {
             flex: 1;
             padding: 16px;
@@ -277,14 +296,8 @@
         }
 
         @keyframes messageSlide {
-            0% { 
-                opacity: 0; 
-                transform: translateY(15px); 
-            }
-            100% { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
+            0% { opacity: 0; transform: translateY(15px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
@@ -300,7 +313,7 @@
             justify-content: center;
             font-weight: 600;
             color: white;
-            font-size: 10px;
+            font-size: 9px;
             flex-shrink: 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
@@ -313,23 +326,6 @@
             background: linear-gradient(135deg, #10b981, #059669);
         }
 
-        /* Model-specific avatar colors */
-        .message.ai.purchase .message-avatar {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-        }
-
-        .message.ai.store .message-avatar {
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-        }
-
-        .message.ai.hr .message-avatar {
-            background: linear-gradient(135deg, #ec4899, #db2777);
-        }
-
-        .message.ai.safety .message-avatar {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-        }
-
         .message-content {
             max-width: 280px;
             padding: 12px 16px;
@@ -337,7 +333,6 @@
             font-size: 14px;
             line-height: 1.5;
             word-wrap: break-word;
-            position: relative;
         }
 
         .message.user .message-content {
@@ -355,7 +350,6 @@
             border: 1px solid #f0f0f0;
         }
 
-        /* Model badge in message */
         .model-badge {
             display: inline-block;
             background: rgba(102, 126, 234, 0.1);
@@ -367,7 +361,6 @@
             margin-bottom: 4px;
         }
 
-        /* Chat Input */
         .chat-input {
             padding: 16px 20px;
             background: white;
@@ -420,17 +413,13 @@
 
         .send-button:hover:not(:disabled) {
             transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         .send-button:disabled {
             background: #cbd5e0;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
 
-        /* Typing Indicator */
         .typing-indicator {
             display: flex;
             align-items: center;
@@ -463,74 +452,12 @@
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
         @keyframes typingBounce {
-            0%, 60%, 100% {
-                transform: translateY(0);
-                opacity: 0.4;
-            }
-            30% {
-                transform: translateY(-8px);
-                opacity: 1;
-            }
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
         }
 
-        /* Notification Badge */
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 20px;
-            height: 20px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            font-size: 12px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid white;
-            animation: badgeBounce 0.5s ease-out;
-        }
-
-        @keyframes badgeBounce {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        /* Responsive */
-        @media screen and (max-width: 480px) {
-            .chat-widget {
-                width: calc(100vw - 40px);
-                height: 600px;
-                right: -10px;
-            }
-            
-            .chat-widget-container {
-                right: 20px;
-            }
-            
-            .message-content {
-                max-width: 220px;
-            }
-
-            .model-selector {
-                gap: 4px;
-            }
-
-            .model-btn {
-                padding: 4px 8px;
-                font-size: 11px;
-            }
-        }
-
-        /* Scrollbar */
         .chat-messages::-webkit-scrollbar {
             width: 4px;
-        }
-
-        .chat-messages::-webkit-scrollbar-track {
-            background: transparent;
         }
 
         .chat-messages::-webkit-scrollbar-thumb {
@@ -538,59 +465,60 @@
             border-radius: 2px;
         }
 
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: rgba(102, 126, 234, 0.5);
+        @media screen and (max-width: 480px) {
+            .chat-widget {
+                width: calc(100vw - 40px);
+                height: 600px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="chat-widget-container">
-        <!-- Chat Toggle Button -->
-        <button class="chat-toggle" id="chatToggle" title="เปิด AESCON Multi-Model Assistant">
-            <span id="toggleIcon">🤖</span>
-            <div class="notification-badge" id="notificationBadge" style="display: none;">1</div>
+        <button class="chat-toggle" id="chatToggle">
+            <span id="toggleIcon">💬</span>
         </button>
 
-        <!-- Chat Widget -->
         <div class="chat-widget show" id="chatWidget">
             <div class="chat-header">
                 <div class="header-top">
                     <div class="chat-title">
                         <div class="status-dot"></div>
-                        <h3>AESCON Assistant T1</h3>
+                        <h3>AESCON Assistant</h3>
                     </div>
-                    <button class="close-btn" id="closeBtn" title="ปิดแชท">×</button>
+                    <button class="close-btn" id="closeBtn">×</button>
                 </div>
                 
-                <!-- Model Selector -->
-                <div class="model-selector">
-                    <button class="model-btn active" data-model="general">
-                        <span class="icon">🤖</span>General
-                    </button>
-                    <button class="model-btn" data-model="purchase">
-                        <span class="icon">🛒</span>Purchase
-                    </button>
-                    <button class="model-btn" data-model="store">
-                        <span class="icon">🏪</span>Store
-                    </button>
-                    <button class="model-btn" data-model="hr">
-                        <span class="icon">👥</span>HR
-                    </button>
-                    <button class="model-btn" data-model="safety">
-                        <span class="icon">🛡️</span>Safety
-                    </button>
+                <div class="chat-mascot">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='90' fill='%23a8b3c7'/%3E%3Ccircle cx='75' cy='85' r='12' fill='%2387ceeb'/%3E%3Ccircle cx='125' cy='85' r='12' fill='%2387ceeb'/%3E%3Cpath d='M75 115 Q100 130 125 115' stroke='%23333' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='100' cy='50' r='40' fill='%23ffd700'/%3E%3Ctext x='100' y='58' font-size='24' text-anchor='middle' fill='%23333'%3E👷%3C/text%3E%3C/svg%3E" 
+                         alt="AESCON Bot" 
+                         class="mascot-image">
+                    <div class="mascot-greeting">
+                        <div class="mascot-greeting-title">👋 สวัสดีครับ!</div>
+                        <div class="mascot-greeting-text">ผมพร้อมช่วยทุกแผนก</div>
+                    </div>
                 </div>
 
-                <div class="current-model">
-                    <span id="currentModelText">🤖 General Assistant - ผู้ช่วยทั่วไป</span>
+                <div class="dept-selector-wrapper">
+                    <select class="dept-dropdown" id="deptDropdown">
+                        <option value="general">💬 ทั่วไป - คำถามทั่วไป</option>
+                        <option value="safety">🛡️ Safety & ENV - ความปลอดภัยและสิ่งแวดล้อม</option>
+                        <option value="warehouse">📦 Warehouse - คลังสินค้า</option>
+                        <option value="logistic">🚚 Logistic - ขนส่งและโลจิสติกส์</option>
+                        <option value="maintenance">🔧 Maintenance - ซ่อมบำรุง</option>
+                        <option value="qc">✅ QC - ควบคุมคุณภาพ</option>
+                        <option value="accounting">💰 Accounting - บัญชีและการเงิน</option>
+                        <option value="engineering">⚙️ Engineering - วิศวกรรมและออกแบบ</option>
+                        <option value="project">📊 Project - โครงการและผลิต</option>
+                        <option value="sales">📈 Sales - ขายและการตลาด</option>
+                        <option value="purchase">🛒 Purchase - จัดซื้อ</option>
+                    </select>
                 </div>
 
-                <!-- AI Model Selector (shown only for General model) -->
                 <div class="ai-model-selector show" id="aiModelSelector">
-                    <div class="ai-model-label">🧠 เลือก AI Model:</div>
+                    <div class="ai-model-label">🧠 เลือก AI:</div>
                     <div class="ai-model-options">
-                        <button class="ai-model-option active" data-ai-model="gpt4">GPT-4</button>
-                        <button class="ai-model-option" data-ai-model="claude">Claude</button>
+                        <button class="ai-model-option active" data-ai-model="gpt4">ChatGPT</button>
                         <button class="ai-model-option" data-ai-model="gemini">Gemini</button>
                     </div>
                 </div>
@@ -600,16 +528,21 @@
                 <div class="message ai general">
                     <div class="message-avatar">AI</div>
                     <div class="message-content">
-                        <div class="model-badge">🤖 General</div>
+                        <div class="model-badge">💬 ทั่วไป</div>
                         <strong>สวัสดีครับ!</strong><br>
-                        ผม AESCON Multi-Model Assistant<br><br>
-                        <strong>เลือกโมเดลตามความต้องการ:</strong>
-                        <br>🤖 <strong>General</strong> - คำถามทั่วไป
-                        <br>🛒 <strong>Purchase</strong> - จัดซื้อ จัดจ้าง
-                        <br>🏪 <strong>Store</strong> - คลังสินค้า สต็อก
-                        <br>👥 <strong>HR</strong> - ทรัพยากรบุคคล
-                        <br>🛡️ <strong>Safety</strong> - ความปลอดภัย<br><br>
-                        มีอะไรให้ช่วยไหมครับ? 😊
+                        ผม AESCON Assistant<br><br>
+                        เลือกแผนกที่ต้องการความช่วยเหลือ:<br>
+                        • Safety & Environment<br>
+                        • Warehouse<br>
+                        • Logistics<br>
+                        • Maintenance<br>
+                        • QC<br>
+                        • Accounting<br>
+                        • Engineering<br>
+                        • Project<br>
+                        • Sales & Marketing<br>
+                        • Purchase<br><br>
+                        มีอะไรให้ช่วยไหมครับ?
                     </div>
                 </div>
             </div>
@@ -622,92 +555,242 @@
                         placeholder="พิมพ์ข้อความของคุณ..."
                         rows="1"
                     ></textarea>
-                    <button class="send-button" id="sendButton" title="ส่งข้อความ">
-                        ➤
-                    </button>
+                    <button class="send-button" id="sendButton">➤</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuration for different models - ใช้ webhook เดียวกันหมด ให้ n8n จัดการ routing
         const WEBHOOK_URL = 'https://n8nv1.zethn8n.work/webhook/953c7856-8ba0-45cd-9540-c29fb6a785d7/chat';
         
         const MODEL_CONFIG = {
-            general: {
-                name: 'General Assistant',
-                description: 'ผู้ช่วยทั่วไป',
-                icon: '🤖',
-                webhook: WEBHOOK_URL,
-                avatar: 'AI',
-                aiModels: {
-                    gpt4: WEBHOOK_URL,
-                    claude: WEBHOOK_URL,
-                    gemini: WEBHOOK_URL
-                }
-            },
-            purchase: {
-                name: 'Purchase Assistant',
-                description: 'ผู้ช่วยงานจัดซื้อ จัดจ้าง',
-                icon: '🛒',
-                webhook: WEBHOOK_URL,
-                avatar: 'PU'
-            },
-            store: {
-                name: 'Store Assistant',
-                description: 'ผู้ช่วยงานคลังสินค้า',
-                icon: '🏪',
-                webhook: WEBHOOK_URL,
-                avatar: 'ST'
-            },
-            hr: {
-                name: 'HR Assistant',
-                description: 'ผู้ช่วยงานทรัพยากรบุคคล',
-                icon: '👥',
-                webhook: WEBHOOK_URL,
-                avatar: 'HR'
-            },
-            safety: {
-                name: 'Safety Assistant',
-                description: 'ผู้ช่วยงานความปลอดภัย',
-                icon: '🛡️',
-                webhook: WEBHOOK_URL,
-                avatar: 'SF'
-            }
+            general: { name: 'ทั่วไป', description: 'คำถามทั่วไป', icon: '💬', avatar: 'AI' },
+            safety: { name: 'Safety & ENV', description: 'ความปลอดภัยและสิ่งแวดล้อม', icon: '🛡️', avatar: 'SF' },
+            warehouse: { name: 'Warehouse', description: 'คลังสินค้า', icon: '📦', avatar: 'WH' },
+            logistic: { name: 'Logistic', description: 'ขนส่งและจัดการโลจิสติกส์', icon: '🚚', avatar: 'LG' },
+            maintenance: { name: 'Maintenance', description: 'ซ่อมบำรุง', icon: '🔧', avatar: 'MT' },
+            qc: { name: 'QC', description: 'ควบคุมคุณภาพ', icon: '✅', avatar: 'QC' },
+            accounting: { name: 'Accounting', description: 'บัญชีและการเงิน', icon: '💰', avatar: 'AC' },
+            engineering: { name: 'Engineering', description: 'วิศวกรรมและออกแบบ', icon: '⚙️', avatar: 'EN' },
+            project: { name: 'Project', description: 'โครงการและผลิต', icon: '📊', avatar: 'PJ' },
+            sales: { name: 'Sales', description: 'ขายและการตลาด', icon: '📈', avatar: 'SL' },
+            purchase: { name: 'Purchase', description: 'จัดซื้อ', icon: '🛒', avatar: 'PU' }
         };
 
-        // DOM Elements
+        let currentModel = 'general';
+        let currentAiModel = 'gpt4';
+        let isOpen = true;
+        let isTyping = false;
+        let currentUser = null;
+
         const chatToggle = document.getElementById('chatToggle');
-        const toggleIcon = document.getElementById('toggleIcon');
         const chatWidget = document.getElementById('chatWidget');
         const closeBtn = document.getElementById('closeBtn');
         const chatMessages = document.getElementById('chatMessages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
-        const notificationBadge = document.getElementById('notificationBadge');
-        const currentModelText = document.getElementById('currentModelText');
-        const modelButtons = document.querySelectorAll('.model-btn');
+        const deptDropdown = document.getElementById('deptDropdown');
         const aiModelSelector = document.getElementById('aiModelSelector');
-        const aiModelOptions = document.querySelectorAll('.ai-model-option');
 
-        let isOpen = true;
-        let isTyping = false;
-        let hasNewMessages = false;
-        let currentModel = 'general';
-        let currentAiModel = 'gpt4'; // Default AI model for General
-        let currentUser = null; // เก็บข้อมูลผู้ใช้
+        chatToggle.addEventListener('click', () => {
+            isOpen ? closeChat() : openChat();
+        });
 
-        // ดึงข้อมูลผู้ใช้จาก SharePoint
+        closeBtn.addEventListener('click', closeChat);
+        sendButton.addEventListener('click', sendMessage);
+
+        deptDropdown.addEventListener('change', (e) => {
+            selectModel(e.target.value);
+        });
+
+        document.querySelectorAll('.ai-model-option').forEach(btn => {
+            btn.addEventListener('click', () => selectAiModel(btn.dataset.aiModel));
+        });
+
+        function selectModel(modelKey) {
+            const model = MODEL_CONFIG[modelKey];
+            if (!model) return;
+
+            currentModel = modelKey;
+            deptDropdown.value = modelKey;
+            
+            if (modelKey === 'general') {
+                aiModelSelector.classList.add('show');
+            } else {
+                aiModelSelector.classList.remove('show');
+            }
+            
+            addMessage('system', `เปลี่ยนเป็น ${model.name} แล้วครับ พร้อมให้บริการ!`, modelKey);
+        }
+
+        function selectAiModel(aiModelKey) {
+            if (currentModel !== 'general') return;
+            
+            document.querySelectorAll('.ai-model-option').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-ai-model="${aiModelKey}"]`).classList.add('active');
+            
+            currentAiModel = aiModelKey;
+            const aiNames = { gpt4: 'ChatGPT', gemini: 'Gemini' };
+            
+            addMessage('system', `🧠 เปลี่ยน AI เป็น ${aiNames[aiModelKey]} แล้วครับ!`, 'general');
+        }
+
+        function openChat() {
+            chatWidget.classList.add('show');
+            chatToggle.classList.add('active');
+            document.getElementById('toggleIcon').innerHTML = '×';
+            isOpen = true;
+            setTimeout(() => messageInput.focus(), 300);
+        }
+
+        function closeChat() {
+            chatWidget.classList.remove('show');
+            chatToggle.classList.remove('active');
+            document.getElementById('toggleIcon').innerHTML = '💬';
+            isOpen = false;
+        }
+
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function addMessage(sender, text, modelKey = currentModel) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender} ${modelKey}`;
+            
+            if (sender !== 'system') {
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = sender === 'user' ? 'You' : MODEL_CONFIG[modelKey].avatar;
+                messageDiv.appendChild(avatar);
+            }
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            let formatted = text.replace(/\n/g, '<br>');
+            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            if (sender === 'ai' || sender === 'system') {
+                const model = MODEL_CONFIG[modelKey];
+                formatted = `<div class="model-badge">${model.icon} ${model.name}</div>` + formatted;
+            }
+            
+            content.innerHTML = formatted;
+            messageDiv.appendChild(content);
+            chatMessages.appendChild(messageDiv);
+            
+            setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 100);
+        }
+
+        function addTypingIndicator() {
+            const model = MODEL_CONFIG[currentModel];
+            const typingDiv = document.createElement('div');
+            typingDiv.className = `message ai ${currentModel}`;
+            typingDiv.id = 'typingIndicator';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = model.avatar;
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.innerHTML = `
+                ${model.name} กำลังพิมพ์...
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+            
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(indicator);
+            chatMessages.appendChild(typingDiv);
+            setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 100);
+            isTyping = true;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+            isTyping = false;
+        }
+
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text || isTyping) return;
+
+            addMessage('user', text);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            addTypingIndicator();
+            sendButton.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('message', text);
+                formData.append('model', currentModel);
+                
+                if (currentUser) {
+                    formData.append('user_id', currentUser.id || 'unknown');
+                    formData.append('user_email', currentUser.email || 'unknown@aescon.com');
+                    formData.append('user_name', currentUser.displayName || 'Unknown User');
+                    formData.append('user_source', currentUser.source || 'unknown');
+                } else {
+                    formData.append('user_id', 'guest_' + Date.now());
+                    formData.append('user_email', 'guest@aescon.com');
+                    formData.append('user_name', 'Guest User');
+                    formData.append('user_source', 'no_user_data');
+                }
+
+                if (currentModel === 'general') {
+                    formData.append('ai_model', currentAiModel);
+                }
+                
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Model-Type': currentModel,
+                        'X-AI-Model': currentAiModel,
+                        'X-User-Email': currentUser?.email || 'unknown@aescon.com',
+                        'X-User-Name': currentUser?.displayName || 'Unknown User'
+                    }
+                });
+
+                removeTypingIndicator();
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const result = await response.text();
+                addMessage('ai', result || `${MODEL_CONFIG[currentModel].name} ได้รับข้อความแล้วครับ!`);
+
+            } catch (error) {
+                removeTypingIndicator();
+                addMessage('ai', `ขอภัยครับ เกิดข้อผิดพลาด: ${error.message}<br>กรุณาลองใหม่อีกครั้ง`);
+            } finally {
+                sendButton.disabled = false;
+            }
+        }
+
         async function fetchCurrentUser() {
             console.log('🔍 กำลังตรวจสอบข้อมูลผู้ใช้...');
             
             try {
-                // วิธีที่ 1: ตรวจสอบ _spPageContextInfo
                 if (typeof _spPageContextInfo !== 'undefined') {
                     console.log('📋 _spPageContextInfo พบ:', _spPageContextInfo);
                     
-                    // ดึงข้อมูลที่มี
                     if (_spPageContextInfo.userEmail || _spPageContextInfo.userId) {
                         currentUser = {
                             id: _spPageContextInfo.userId || 'sp_' + Date.now(),
@@ -722,7 +805,6 @@
                     }
                 }
                 
-                // วิธีที่ 2: ใช้ DOM - หา element ที่แสดงชื่อผู้ใช้
                 const meControl = document.querySelector('[data-automationid="me-control"]');
                 const userButton = document.querySelector('button[data-testid="persona-button"]');
                 const personaCard = document.querySelector('.ms-Persona-primaryText');
@@ -756,7 +838,6 @@
                 console.error('❌ Error:', error);
             }
             
-            // Fallback: ใช้ Demo User
             currentUser = {
                 id: 'demo_' + Date.now(),
                 email: 'demo@aescon.com',
@@ -768,336 +849,12 @@
             console.log('⚠️ ใช้โหมด Demo:', currentUser);
         }
 
-        // Event Listeners
-        chatToggle.addEventListener('click', toggleChat);
-        closeBtn.addEventListener('click', closeChat);
-
-        // Model selection
-        modelButtons.forEach(button => {
-            button.addEventListener('click', () => selectModel(button.dataset.model));
-        });
-
-        // AI Model selection (for General model)
-        aiModelOptions.forEach(button => {
-            button.addEventListener('click', () => selectAiModel(button.dataset.aiModel));
-        });
-
-        function selectModel(modelKey) {
-            const model = MODEL_CONFIG[modelKey];
-            if (!model) return;
-
-            // Update UI
-            modelButtons.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-model="${modelKey}"]`).classList.add('active');
-            
-            currentModel = modelKey;
-            currentModelText.innerHTML = `${model.icon} ${model.name} - ${model.description}`;
-            
-            // Show/hide AI model selector (only for General model)
-            if (modelKey === 'general') {
-                aiModelSelector.classList.add('show');
-            } else {
-                aiModelSelector.classList.remove('show');
-            }
-            
-            // Add model change message
-            addMessage('system', `เปลี่ยนเป็น ${model.name} แล้วครับ พร้อมให้บริการ!`, modelKey);
-            
-            // Clear typing state
-            removeTypingIndicator();
-        }
-
-        function selectAiModel(aiModelKey) {
-            if (currentModel !== 'general') return; // Only works for General model
-            
-            // Update UI
-            aiModelOptions.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-ai-model="${aiModelKey}"]`).classList.add('active');
-            
-            currentAiModel = aiModelKey;
-            
-            // Get AI model name
-            const aiModelNames = {
-                gpt4: 'GPT-4',
-                claude: 'Claude',
-                gemini: 'Gemini'
-            };
-            
-            // Add AI model change message
-            addMessage('system', `🧠 เปลี่ยน AI Model เป็น ${aiModelNames[aiModelKey]} แล้วครับ!`, 'general');
-        }
-
-        function toggleChat() {
-            if (isOpen) {
-                closeChat();
-            } else {
-                openChat();
-            }
-        }
-
-        function openChat() {
-            chatWidget.classList.add('show');
-            chatToggle.classList.add('active');
-            toggleIcon.innerHTML = '×';
-            isOpen = true;
-            
-            // Hide notification badge
-            notificationBadge.style.display = 'none';
-            hasNewMessages = false;
-            
-            // Focus input after animation
-            setTimeout(() => {
-                messageInput.focus();
-            }, 300);
-        }
-
-        function closeChat() {
-            chatWidget.classList.add('hide');
-            setTimeout(() => {
-                chatWidget.classList.remove('show', 'hide');
-                chatToggle.classList.remove('active');
-                toggleIcon.innerHTML = '🤖';
-                isOpen = false;
-            }, 200);
-        }
-
-        // Auto-resize textarea
-        messageInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
-        });
-
-        // Send on Enter
-        messageInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
-        // Send button click
-        sendButton.addEventListener('click', sendMessage);
-
-        function addMessage(sender, text, modelKey = currentModel) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender} ${modelKey}`;
-            
-            if (sender !== 'system') {
-                const avatar = document.createElement('div');
-                avatar.className = 'message-avatar';
-                
-                if (sender === 'user') {
-                    avatar.textContent = 'You';
-                } else {
-                    const model = MODEL_CONFIG[modelKey] || MODEL_CONFIG.general;
-                    avatar.textContent = model.avatar;
-                }
-                
-                messageDiv.appendChild(avatar);
-            }
-            
-            const content = document.createElement('div');
-            content.className = 'message-content';
-            
-            let formattedText = formatText(text);
-            
-            // Add model badge for AI/system messages
-            if (sender === 'ai' || sender === 'system') {
-                const model = MODEL_CONFIG[modelKey] || MODEL_CONFIG.general;
-                const badge = `<div class="model-badge">${model.icon} ${modelKey.charAt(0).toUpperCase() + modelKey.slice(1)}</div>`;
-                formattedText = badge + formattedText;
-            }
-            
-            content.innerHTML = formattedText;
-            messageDiv.appendChild(content);
-            
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
-
-            // Show notification if chat is closed and it's an AI message
-            if (!isOpen && (sender === 'ai' || sender === 'system')) {
-                showNotification();
-            }
-        }
-
-        function addTypingIndicator() {
-            const model = MODEL_CONFIG[currentModel];
-            const typingDiv = document.createElement('div');
-            typingDiv.className = `message ai ${currentModel}`;
-            typingDiv.id = 'typingIndicator';
-            
-            const avatar = document.createElement('div');
-            avatar.className = 'message-avatar';
-            avatar.textContent = model.avatar;
-            
-            const indicator = document.createElement('div');
-            indicator.className = 'typing-indicator';
-            indicator.innerHTML = `
-                ${model.name} กำลังพิมพ์...
-                <div class="typing-dots">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
-            `;
-            
-            typingDiv.appendChild(avatar);
-            typingDiv.appendChild(indicator);
-            
-            chatMessages.appendChild(typingDiv);
-            scrollToBottom();
-            isTyping = true;
-        }
-
-        function removeTypingIndicator() {
-            const typingIndicator = document.getElementById('typingIndicator');
-            if (typingIndicator) {
-                typingIndicator.remove();
-            }
-            isTyping = false;
-        }
-
-        function showNotification() {
-            if (!hasNewMessages) {
-                notificationBadge.style.display = 'flex';
-                hasNewMessages = true;
-                
-                // Add bounce effect to toggle button
-                chatToggle.style.animation = 'none';
-                setTimeout(() => {
-                    chatToggle.style.animation = 'badgeBounce 0.5s ease-out';
-                }, 10);
-            }
-        }
-
-        function formatText(text) {
-            if (!text) return '';
-            
-            // Parse API response
-            let cleanText = text;
-            try {
-                const parsed = JSON.parse(text);
-                if (parsed.output) cleanText = parsed.output;
-                else if (parsed.response) cleanText = parsed.response;
-                else if (parsed.message) cleanText = parsed.message;
-            } catch (e) {
-                // Use as plain text if not JSON
-            }
-            
-            // Basic formatting
-            let formatted = cleanText.replace(/\n/g, '<br>');
-            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            formatted = formatted.replace(/`(.*?)`/g, '<code style="background: rgba(102,126,234,0.1); padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 0.9em;">$1</code>');
-            
-            return formatted;
-        }
-
-        function scrollToBottom() {
-            setTimeout(() => {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 100);
-        }
-
-        async function sendMessage() {
-            const text = messageInput.value.trim();
-            if (!text || isTyping) return;
-
-            const model = MODEL_CONFIG[currentModel];
-            addMessage('user', text);
-            messageInput.value = '';
-            messageInput.style.height = 'auto';
-            
-            addTypingIndicator();
-            sendButton.disabled = true;
-
-            try {
-                const formData = new FormData();
-                formData.append('message', text);
-                formData.append('model', currentModel);
-                
-                // ส่งข้อมูลผู้ใช้ (บังคับส่งเสมอ)
-                if (currentUser) {
-                    formData.append('user_id', currentUser.id || 'unknown');
-                    formData.append('user_email', currentUser.email || 'unknown@aescon.com');
-                    formData.append('user_name', currentUser.displayName || 'Unknown User');
-                    formData.append('user_login', currentUser.loginName || 'unknown');
-                    formData.append('user_source', currentUser.source || 'unknown');
-                } else {
-                    // ถ้ายังไม่มี user ให้สร้าง guest
-                    const guestId = 'guest_' + Date.now();
-                    formData.append('user_id', guestId);
-                    formData.append('user_email', 'guest@aescon.com');
-                    formData.append('user_name', 'Guest User');
-                    formData.append('user_login', 'guest');
-                    formData.append('user_source', 'no_user_data');
-                }
-
-                // เลือก webhook ตาม model และ AI model (ถ้าเป็น general)
-                let webhookUrl = model.webhook; // ใช้ webhook เดียวกันหมด
-                if (currentModel === 'general' && model.aiModels && model.aiModels[currentAiModel]) {
-                    webhookUrl = model.aiModels[currentAiModel];
-                    formData.append('ai_model', currentAiModel);
-                }
-
-                // Log ข้อมูลที่ส่ง
-                console.log('=== ส่งข้อมูลไป n8n ===');
-                console.log(`Model: ${currentModel}`);
-                if (currentModel === 'general') {
-                    console.log(`AI Model: ${currentAiModel}`);
-                }
-                console.log('User Info:', currentUser);
-                console.log('FormData:');
-                for (let [key, value] of formData.entries()) {
-                    console.log(`  ${key}: ${value}`);
-                }
-                console.log('======================');
-                
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Model-Type': currentModel,
-                        'X-AI-Model': currentAiModel,
-                        'X-User-Email': currentUser?.email || 'unknown@aescon.com',
-                        'X-User-Name': currentUser?.displayName || 'Unknown User',
-                        'X-User-Source': currentUser?.source || 'unknown'
-                    }
-                });
-
-                removeTypingIndicator();
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const result = await response.text();
-                addMessage('ai', result || `${model.name} ได้รับข้อความของคุณแล้วครับ!`);
-
-            } catch (error) {
-                removeTypingIndicator();
-                addMessage('ai', `ขอภัยครับ เกิดข้อผิดพลาดจาก ${model.name}: ${error.message}<br><br>กรุณาลองใหม่อีกครั้ง หรือเปลี่ยนโมเดลอื่น`);
-            } finally {
-                sendButton.disabled = false;
-            }
-        }
-
-        // Initialize
-        console.log('AESCON Multi-Model Toggle Chat พร้อมใช้งาน');
+        console.log('AESCON Chat Widget พร้อมใช้งาน');
         console.log('Environment check:');
         console.log('- _spPageContextInfo:', typeof _spPageContextInfo !== 'undefined' ? 'พบ' : 'ไม่พบ');
-        console.log('- window.location:', window.location.href);
+        console.log('- Location:', window.location.href);
         
-        // ดึงข้อมูลผู้ใช้ทันทีเมื่อโหลดหน้า
         fetchCurrentUser();
-        
-        // Auto-show notification after 3 seconds (optional)
-        setTimeout(() => {
-            if (!isOpen && !hasNewMessages) {
-                showNotification();
-            }
-        }, 3000);
-
     </script>
 </body>
 </html>
