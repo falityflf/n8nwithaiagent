@@ -557,7 +557,7 @@
                 <div class="header-top">
                     <div class="chat-title">
                         <div class="status-dot"></div>
-                        <h3>AESCON Assistant TEST</h3>
+                        <h3>AESCON Assistant T1</h3>
                     </div>
                     <button class="close-btn" id="closeBtn" title="ปิดแชท">×</button>
                 </div>
@@ -700,82 +700,72 @@
 
         // ดึงข้อมูลผู้ใช้จาก SharePoint
         async function fetchCurrentUser() {
+            console.log('🔍 กำลังตรวจสอบข้อมูลผู้ใช้...');
+            
             try {
-                // ตรวจสอบว่าอยู่ใน SharePoint หรือไม่
-                if (typeof _spPageContextInfo === 'undefined') {
-                    console.warn('⚠️ ไม่ได้อยู่ใน SharePoint - ใช้ข้อมูล Demo');
+                // วิธีที่ 1: ตรวจสอบ _spPageContextInfo
+                if (typeof _spPageContextInfo !== 'undefined') {
+                    console.log('📋 _spPageContextInfo พบ:', _spPageContextInfo);
+                    
+                    // ดึงข้อมูลที่มี
+                    if (_spPageContextInfo.userEmail || _spPageContextInfo.userId) {
+                        currentUser = {
+                            id: _spPageContextInfo.userId || 'sp_' + Date.now(),
+                            email: _spPageContextInfo.userEmail || _spPageContextInfo.userLoginName || 'unknown@aescon.com',
+                            loginName: _spPageContextInfo.userLoginName || 'unknown',
+                            displayName: _spPageContextInfo.userDisplayName || _spPageContextInfo.userEmail || 'SharePoint User',
+                            timestamp: new Date().toISOString(),
+                            source: 'sharepoint_context'
+                        };
+                        console.log('✅ ใช้ข้อมูลจาก _spPageContextInfo:', currentUser);
+                        return;
+                    }
+                }
+                
+                // วิธีที่ 2: ใช้ DOM - หา element ที่แสดงชื่อผู้ใช้
+                const meControl = document.querySelector('[data-automationid="me-control"]');
+                const userButton = document.querySelector('button[data-testid="persona-button"]');
+                const personaCard = document.querySelector('.ms-Persona-primaryText');
+                
+                let displayName = null;
+                
+                if (meControl) {
+                    displayName = meControl.getAttribute('title') || meControl.textContent;
+                } else if (userButton) {
+                    displayName = userButton.getAttribute('aria-label') || userButton.textContent;
+                } else if (personaCard) {
+                    displayName = personaCard.textContent;
+                }
+                
+                if (displayName) {
+                    console.log('✅ พบชื่อผู้ใช้จาก DOM:', displayName);
                     currentUser = {
-                        id: 'demo_123',
-                        email: 'demo@aescon.com',
-                        loginName: 'demo_user',
-                        displayName: 'Demo User',
+                        id: 'sp_' + Date.now(),
+                        email: displayName.includes('@') ? displayName : displayName + '@aescon.com',
+                        loginName: displayName,
+                        displayName: displayName,
                         timestamp: new Date().toISOString(),
-                        source: 'demo'
+                        source: 'dom_extraction'
                     };
                     return;
                 }
-
-                // ใช้ _spPageContextInfo โดยตรง (ไม่ต้องเรียก API)
-                console.log('📋 _spPageContextInfo:', _spPageContextInfo);
                 
-                currentUser = {
-                    id: _spPageContextInfo.userId || 'unknown',
-                    email: _spPageContextInfo.userEmail || _spPageContextInfo.userLoginName || 'unknown@aescon.com',
-                    loginName: _spPageContextInfo.userLoginName || 'unknown',
-                    displayName: _spPageContextInfo.userDisplayName || _spPageContextInfo.userEmail || 'Unknown User',
-                    timestamp: new Date().toISOString(),
-                    source: 'sharepoint_context'
-                };
-                
-                console.log('✅ SharePoint User (จาก Context):', currentUser);
-                
-                // ลองเรียก API เป็น fallback (ถ้าได้ก็ดี ถ้าไม่ได้ก็ใช้ context)
-                try {
-                    const response = await fetch(
-                        _spPageContextInfo.webAbsoluteUrl + "/_api/web/currentuser",
-                        {
-                            headers: {
-                                "Accept": "application/json;odata=verbose"
-                            }
-                        }
-                    );
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        const user = data.d;
-                        
-                        // อัพเดทด้วยข้อมูลจาก API (สมบูรณ์กว่า)
-                        currentUser = {
-                            id: user.Id,
-                            email: user.Email,
-                            loginName: user.LoginName,
-                            displayName: user.Title,
-                            department: user.Department,
-                            jobTitle: user.JobTitle,
-                            timestamp: new Date().toISOString(),
-                            source: 'sharepoint_api'
-                        };
-                        
-                        console.log('✅ อัพเดท User จาก SharePoint API:', currentUser);
-                    }
-                } catch (apiError) {
-                    console.warn('⚠️ SharePoint API ไม่สำเร็จ ใช้ข้อมูลจาก Context แทน:', apiError.message);
-                }
+                console.warn('⚠️ ไม่พบข้อมูลผู้ใช้ - ใช้โหมด Demo');
                 
             } catch (error) {
-                console.error('❌ Error fetching user:', error);
-                
-                // Fallback สุดท้าย: ใช้ข้อมูล guest
-                currentUser = {
-                    id: 'guest_' + Date.now(),
-                    email: 'guest@aescon.com',
-                    loginName: 'guest',
-                    displayName: 'Guest User',
-                    timestamp: new Date().toISOString(),
-                    source: 'fallback'
-                };
-                console.log('⚠️ ใช้ข้อมูล Guest:', currentUser);
+                console.error('❌ Error:', error);
             }
+            
+            // Fallback: ใช้ Demo User
+            currentUser = {
+                id: 'demo_' + Date.now(),
+                email: 'demo@aescon.com',
+                loginName: 'demo_user',
+                displayName: 'Demo User',
+                timestamp: new Date().toISOString(),
+                source: 'demo'
+            };
+            console.log('⚠️ ใช้โหมด Demo:', currentUser);
         }
 
         // Event Listeners
@@ -1094,6 +1084,9 @@
 
         // Initialize
         console.log('AESCON Multi-Model Toggle Chat พร้อมใช้งาน');
+        console.log('Environment check:');
+        console.log('- _spPageContextInfo:', typeof _spPageContextInfo !== 'undefined' ? 'พบ' : 'ไม่พบ');
+        console.log('- window.location:', window.location.href);
         
         // ดึงข้อมูลผู้ใช้ทันทีเมื่อโหลดหน้า
         fetchCurrentUser();
