@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AESCON Chat Widget for SharePoint</title>
+    <title>AESCON Multi-Model Toggle Chat</title>
     <style>
         * {
             margin: 0;
@@ -12,14 +12,21 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Main Container - Fixed Position */
+        .chat-widget-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
         }
 
         /* Chat Toggle Button */
         .chat-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
             width: 60px;
             height: 60px;
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -33,7 +40,8 @@
             font-size: 24px;
             color: white;
             transition: all 0.3s ease;
-            z-index: 9999;
+            position: relative;
+            z-index: 10001;
         }
 
         .chat-toggle:hover {
@@ -43,32 +51,33 @@
 
         .chat-toggle.active {
             background: linear-gradient(135deg, #ef4444, #dc2626);
+            transform: rotate(45deg);
         }
 
-        /* Chat Widget Container */
+        /* Chat Widget */
         .chat-widget {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            width: 380px;
-            height: 600px;
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            width: 400px;
+            height: 650px;
             background: white;
             border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
             display: none;
             flex-direction: column;
             overflow: hidden;
-            z-index: 9998;
-            animation: slideUp 0.3s ease-out;
             border: 1px solid #e5e7eb;
+            transform-origin: bottom right;
+            animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         @keyframes slideUp {
-            from {
+            0% {
                 opacity: 0;
-                transform: translateY(20px) scale(0.95);
+                transform: translateY(20px) scale(0.8);
             }
-            to {
+            100% {
                 opacity: 1;
                 transform: translateY(0) scale(1);
             }
@@ -79,17 +88,17 @@
         }
 
         .chat-widget.hide {
-            animation: slideDown 0.3s ease-out;
+            animation: slideDown 0.2s ease-out forwards;
         }
 
         @keyframes slideDown {
-            from {
+            0% {
                 opacity: 1;
                 transform: translateY(0) scale(1);
             }
-            to {
+            100% {
                 opacity: 0;
-                transform: translateY(20px) scale(0.95);
+                transform: translateY(10px) scale(0.95);
             }
         }
 
@@ -98,9 +107,14 @@
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             padding: 16px 20px;
+            flex-shrink: 0;
+        }
+
+        .header-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 12px;
         }
 
         .chat-title {
@@ -115,7 +129,7 @@
             font-weight: 600;
         }
 
-        .chat-title .status {
+        .status-dot {
             width: 8px;
             height: 8px;
             background: #4ade80;
@@ -123,19 +137,126 @@
             animation: pulse 2s infinite;
         }
 
-        .minimize-btn {
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.95); }
+        }
+
+        .close-btn {
             background: none;
             border: none;
             color: white;
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
             padding: 4px 8px;
             border-radius: 4px;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            line-height: 1;
         }
 
-        .minimize-btn:hover {
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.1);
+        }
+
+        /* Model Selector */
+        .model-selector {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .model-btn {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .model-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .model-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .model-btn .icon {
+            margin-right: 4px;
+        }
+
+        /* Current Model Display */
+        .current-model {
             background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        /* AI Model Selector (for General model) */
+        .ai-model-selector {
+            margin-top: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            backdrop-filter: blur(10px);
+            display: none;
+        }
+
+        .ai-model-selector.show {
+            display: block;
+        }
+
+        .ai-model-label {
+            font-size: 10px;
+            margin-bottom: 6px;
+            opacity: 0.9;
+        }
+
+        .ai-model-options {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .ai-model-option {
+            flex: 1;
+            min-width: 70px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .ai-model-option:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .ai-model-option.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            border-color: rgba(255, 255, 255, 0.8);
         }
 
         /* Chat Messages */
@@ -143,7 +264,7 @@
             flex: 1;
             padding: 16px;
             overflow-y: auto;
-            background: #fafafa;
+            background: linear-gradient(180deg, #fafafa 0%, #f8f9fa 100%);
             scroll-behavior: smooth;
         }
 
@@ -152,12 +273,18 @@
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            animation: fadeIn 0.4s ease-out;
+            animation: messageSlide 0.4s ease-out;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes messageSlide {
+            0% { 
+                opacity: 0; 
+                transform: translateY(15px); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
         }
 
         .message.user {
@@ -171,10 +298,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 600;
             color: white;
-            font-size: 12px;
+            font-size: 10px;
             flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .message.user .message-avatar {
@@ -185,84 +313,98 @@
             background: linear-gradient(135deg, #10b981, #059669);
         }
 
+        /* Model-specific avatar colors */
+        .message.ai.purchase .message-avatar {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .message.ai.store .message-avatar {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .message.ai.hr .message-avatar {
+            background: linear-gradient(135deg, #ec4899, #db2777);
+        }
+
+        .message.ai.safety .message-avatar {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
         .message-content {
-            max-width: 250px;
+            max-width: 280px;
             padding: 12px 16px;
-            border-radius: 16px;
+            border-radius: 18px;
             font-size: 14px;
             line-height: 1.5;
             word-wrap: break-word;
+            position: relative;
         }
 
         .message.user .message-content {
             background: linear-gradient(135deg, #667eea, #5a67d8);
             color: white;
-            border-bottom-right-radius: 4px;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.3);
         }
 
         .message.ai .message-content {
             background: white;
             color: #2d3748;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f0f0f0;
         }
 
-        .message-content ul {
-            margin: 8px 0;
-            padding-left: 20px;
-        }
-
-        .message-content li {
-            margin: 4px 0;
-        }
-
-        .message-content p {
-            margin: 8px 0;
-        }
-
-        .message-content p:first-child {
-            margin-top: 0;
-        }
-
-        .message-content p:last-child {
-            margin-bottom: 0;
+        /* Model badge in message */
+        .model-badge {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-bottom: 4px;
         }
 
         /* Chat Input */
         .chat-input {
-            padding: 16px;
+            padding: 16px 20px;
             background: white;
             border-top: 1px solid #e5e7eb;
+            flex-shrink: 0;
         }
 
         .input-container {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             align-items: flex-end;
         }
 
         .message-input {
             flex: 1;
-            min-height: 36px;
+            min-height: 40px;
             max-height: 100px;
-            padding: 10px 14px;
-            border: 1px solid #d1d5db;
-            border-radius: 18px;
+            padding: 10px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
             font-size: 14px;
             resize: none;
             outline: none;
             transition: all 0.2s;
             font-family: inherit;
+            background: #fafafa;
         }
 
         .message-input:focus {
             border-color: #667eea;
-            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .send-button {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border: none;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea, #5a67d8);
@@ -273,30 +415,35 @@
             justify-content: center;
             transition: all 0.2s;
             font-size: 16px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         .send-button:hover:not(:disabled) {
             transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         .send-button:disabled {
             background: #cbd5e0;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         /* Typing Indicator */
         .typing-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             padding: 12px 16px;
             background: white;
-            border-radius: 16px;
-            border-bottom-left-radius: 4px;
-            max-width: 250px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            font-size: 12px;
+            border-radius: 18px;
+            border-bottom-left-radius: 6px;
+            max-width: 280px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            font-size: 13px;
             color: #6b7280;
+            border: 1px solid #f0f0f0;
         }
 
         .typing-dots {
@@ -309,35 +456,71 @@
             height: 6px;
             background: #667eea;
             border-radius: 50%;
-            animation: typingDot 1.4s infinite ease-in-out;
+            animation: typingBounce 1.4s infinite ease-in-out;
         }
 
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-        @keyframes typingDot {
+        @keyframes typingBounce {
             0%, 60%, 100% {
                 transform: translateY(0);
                 opacity: 0.4;
             }
             30% {
-                transform: translateY(-6px);
+                transform: translateY(-8px);
                 opacity: 1;
             }
         }
 
+        /* Notification Badge */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            animation: badgeBounce 0.5s ease-out;
+        }
+
+        @keyframes badgeBounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
         /* Responsive */
-        @media (max-width: 480px) {
+        @media screen and (max-width: 480px) {
             .chat-widget {
-                width: calc(100vw - 20px);
-                height: calc(100vh - 120px);
-                right: 10px;
-                bottom: 80px;
+                width: calc(100vw - 40px);
+                height: 600px;
+                right: -10px;
             }
             
-            .chat-toggle {
-                right: 15px;
-                bottom: 15px;
+            .chat-widget-container {
+                right: 20px;
+            }
+            
+            .message-content {
+                max-width: 220px;
+            }
+
+            .model-selector {
+                gap: 4px;
+            }
+
+            .model-btn {
+                padding: 4px 8px;
+                font-size: 11px;
             }
         }
 
@@ -347,85 +530,275 @@
         }
 
         .chat-messages::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: transparent;
         }
 
         .chat-messages::-webkit-scrollbar-thumb {
-            background: #667eea;
+            background: rgba(102, 126, 234, 0.3);
             border-radius: 2px;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.5);
         }
     </style>
 </head>
 <body>
-    <!-- Chat Toggle Button -->
-    <button class="chat-toggle" id="chatToggle" title="เปิด/ปิด AESCON Chat">
-        💬
-    </button>
+    <div class="chat-widget-container">
+        <!-- Chat Toggle Button -->
+        <button class="chat-toggle" id="chatToggle" title="เปิด AESCON Multi-Model Assistant">
+            <span id="toggleIcon">🤖</span>
+            <div class="notification-badge" id="notificationBadge" style="display: none;">1</div>
+        </button>
 
-    <!-- Chat Widget -->
-    <div class="chat-widget" id="chatWidget">
-        <div class="chat-header">
-            <div class="chat-title">
-                <span class="status"></span>
-                <h3>AESCON AI Assistant</h3>
-            </div>
-            <button class="minimize-btn" id="minimizeBtn">−</button>
-        </div>
-        
-        <div class="chat-messages" id="chatMessages">
-            <div class="message ai">
-                <div class="message-avatar">AI</div>
-                <div class="message-content">
-                   <p><strong>สวัสดีค่ะ ยินดีต้อนรับสู่ AESCON AI Assistant!</strong> ผู้ช่วยงานข้อมูลของท่าน</p>
-                    <p>พร้อมสนับสนุนและให้ความช่วยเหลือ:</p>
-                    <ul>
-                        <li>การค้นหาข้อมูลในเอกสาร</li>
-                        <li>ตอบคำถามเกี่ยวกับบริษัท</li>
-                        <li>สรุปข้อมูลแบบมืออาชีพ</li>
-                    </ul>
-                    <p>คุณสามารถถามคำถามหรือแชทกับฉันได้เลยค่ะ! 😊</p>
+        <!-- Chat Widget -->
+        <div class="chat-widget show" id="chatWidget">
+            <div class="chat-header">
+                <div class="header-top">
+                    <div class="chat-title">
+                        <div class="status-dot"></div>
+                        <h3>AESCON Assistant</h3>
+                    </div>
+                    <button class="close-btn" id="closeBtn" title="ปิดแชท">×</button>
+                </div>
+                
+                <!-- Model Selector -->
+                <div class="model-selector">
+                    <button class="model-btn active" data-model="general">
+                        <span class="icon">🤖</span>General
+                    </button>
+                    <button class="model-btn" data-model="purchase">
+                        <span class="icon">🛒</span>Purchase
+                    </button>
+                    <button class="model-btn" data-model="store">
+                        <span class="icon">🏪</span>Store
+                    </button>
+                    <button class="model-btn" data-model="hr">
+                        <span class="icon">👥</span>HR
+                    </button>
+                    <button class="model-btn" data-model="safety">
+                        <span class="icon">🛡️</span>Safety
+                    </button>
+                </div>
+
+                <div class="current-model">
+                    <span id="currentModelText">🤖 General Assistant - ผู้ช่วยทั่วไป</span>
+                </div>
+
+                <!-- AI Model Selector (shown only for General model) -->
+                <div class="ai-model-selector show" id="aiModelSelector">
+                    <div class="ai-model-label">🧠 เลือก AI Model:</div>
+                    <div class="ai-model-options">
+                        <button class="ai-model-option active" data-ai-model="gpt4">GPT-4</button>
+                        <button class="ai-model-option" data-ai-model="claude">Claude</button>
+                        <button class="ai-model-option" data-ai-model="gemini">Gemini</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="chat-input">
-            <div class="input-container">
-                <textarea 
-                    id="messageInput" 
-                    class="message-input" 
-                    placeholder="พิมพ์ข้อความของคุณ..."
-                    rows="1"
-                ></textarea>
-                <button class="send-button" id="sendButton" title="ส่งข้อความ">
-                    ➤
-                </button>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai general">
+                    <div class="message-avatar">AI</div>
+                    <div class="message-content">
+                        <div class="model-badge">🤖 General</div>
+                        <strong>สวัสดีครับ!</strong><br>
+                        ผม AESCON Multi-Model Assistant<br><br>
+                        <strong>เลือกโมเดลตามความต้องการ:</strong>
+                        <br>🤖 <strong>General</strong> - คำถามทั่วไป
+                        <br>🛒 <strong>Purchase</strong> - จัดซื้อ จัดจ้าง
+                        <br>🏪 <strong>Store</strong> - คลังสินค้า สต็อก
+                        <br>👥 <strong>HR</strong> - ทรัพยากรบุคคล
+                        <br>🛡️ <strong>Safety</strong> - ความปลอดภัย<br><br>
+                        มีอะไรให้ช่วยไหมครับ? 😊
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <div class="input-container">
+                    <textarea 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="พิมพ์ข้อความของคุณ..."
+                        rows="1"
+                    ></textarea>
+                    <button class="send-button" id="sendButton" title="ส่งข้อความ">
+                        ➤
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Configuration
+        // Configuration for different models - ใช้ webhook เดียวกันหมด ให้ n8n จัดการ routing
         const WEBHOOK_URL = 'https://n8nv1.zethn8n.work/webhook/953c7856-8ba0-45cd-9540-c29fb6a785d7/chat';
         
+        const MODEL_CONFIG = {
+            general: {
+                name: 'General Assistant',
+                description: 'ผู้ช่วยทั่วไป',
+                icon: '🤖',
+                webhook: WEBHOOK_URL,
+                avatar: 'AI',
+                aiModels: {
+                    gpt4: WEBHOOK_URL,
+                    claude: WEBHOOK_URL,
+                    gemini: WEBHOOK_URL
+                }
+            },
+            purchase: {
+                name: 'Purchase Assistant',
+                description: 'ผู้ช่วยงานจัดซื้อ จัดจ้าง',
+                icon: '🛒',
+                webhook: WEBHOOK_URL,
+                avatar: 'PU'
+            },
+            store: {
+                name: 'Store Assistant',
+                description: 'ผู้ช่วยงานคลังสินค้า',
+                icon: '🏪',
+                webhook: WEBHOOK_URL,
+                avatar: 'ST'
+            },
+            hr: {
+                name: 'HR Assistant',
+                description: 'ผู้ช่วยงานทรัพยากรบุคคล',
+                icon: '👥',
+                webhook: WEBHOOK_URL,
+                avatar: 'HR'
+            },
+            safety: {
+                name: 'Safety Assistant',
+                description: 'ผู้ช่วยงานความปลอดภัย',
+                icon: '🛡️',
+                webhook: WEBHOOK_URL,
+                avatar: 'SF'
+            }
+        };
+
         // DOM Elements
         const chatToggle = document.getElementById('chatToggle');
+        const toggleIcon = document.getElementById('toggleIcon');
         const chatWidget = document.getElementById('chatWidget');
-        const minimizeBtn = document.getElementById('minimizeBtn');
+        const closeBtn = document.getElementById('closeBtn');
         const chatMessages = document.getElementById('chatMessages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
+        const notificationBadge = document.getElementById('notificationBadge');
+        const currentModelText = document.getElementById('currentModelText');
+        const modelButtons = document.querySelectorAll('.model-btn');
+        const aiModelSelector = document.getElementById('aiModelSelector');
+        const aiModelOptions = document.querySelectorAll('.ai-model-option');
 
-        let isOpen = false;
+        let isOpen = true;
         let isTyping = false;
+        let hasNewMessages = false;
+        let currentModel = 'general';
+        let currentAiModel = 'gpt4'; // Default AI model for General
+        let currentUser = null; // เก็บข้อมูลผู้ใช้
 
-        // Toggle Chat
+        // ดึงข้อมูลผู้ใช้จาก SharePoint
+        async function fetchCurrentUser() {
+            try {
+                // วิธีที่ 1: ใช้ SharePoint REST API
+                const response = await fetch(
+                    _spPageContextInfo.webAbsoluteUrl + "/_api/web/currentuser",
+                    {
+                        headers: {
+                            "Accept": "application/json;odata=verbose"
+                        }
+                    }
+                );
+                
+                const data = await response.json();
+                const user = data.d;
+                
+                currentUser = {
+                    id: user.Id,
+                    email: user.Email,
+                    loginName: user.LoginName,
+                    displayName: user.Title,
+                    timestamp: new Date().toISOString()
+                };
+                
+                console.log('SharePoint User:', currentUser);
+                
+                // แสดงชื่อผู้ใช้ใน chat header (optional)
+                // document.querySelector('.chat-title h3').textContent = `สวัสดี ${user.Title}`;
+                
+            } catch (error) {
+                console.error('Error fetching user from SharePoint:', error);
+                // Fallback: ใช้ข้อมูลจาก context ถ้ามี
+                if (typeof _spPageContextInfo !== 'undefined') {
+                    currentUser = {
+                        email: _spPageContextInfo.userEmail,
+                        loginName: _spPageContextInfo.userLoginName,
+                        displayName: _spPageContextInfo.userDisplayName,
+                        timestamp: new Date().toISOString()
+                    };
+                }
+            }
+        }
+
+        // Event Listeners
         chatToggle.addEventListener('click', toggleChat);
-        minimizeBtn.addEventListener('click', closeChat);
+        closeBtn.addEventListener('click', closeChat);
+
+        // Model selection
+        modelButtons.forEach(button => {
+            button.addEventListener('click', () => selectModel(button.dataset.model));
+        });
+
+        // AI Model selection (for General model)
+        aiModelOptions.forEach(button => {
+            button.addEventListener('click', () => selectAiModel(button.dataset.aiModel));
+        });
+
+        function selectModel(modelKey) {
+            const model = MODEL_CONFIG[modelKey];
+            if (!model) return;
+
+            // Update UI
+            modelButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-model="${modelKey}"]`).classList.add('active');
+            
+            currentModel = modelKey;
+            currentModelText.innerHTML = `${model.icon} ${model.name} - ${model.description}`;
+            
+            // Show/hide AI model selector (only for General model)
+            if (modelKey === 'general') {
+                aiModelSelector.classList.add('show');
+            } else {
+                aiModelSelector.classList.remove('show');
+            }
+            
+            // Add model change message
+            addMessage('system', `เปลี่ยนเป็น ${model.name} แล้วครับ พร้อมให้บริการ!`, modelKey);
+            
+            // Clear typing state
+            removeTypingIndicator();
+        }
+
+        function selectAiModel(aiModelKey) {
+            if (currentModel !== 'general') return; // Only works for General model
+            
+            // Update UI
+            aiModelOptions.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-ai-model="${aiModelKey}"]`).classList.add('active');
+            
+            currentAiModel = aiModelKey;
+            
+            // Get AI model name
+            const aiModelNames = {
+                gpt4: 'GPT-4',
+                claude: 'Claude',
+                gemini: 'Gemini'
+            };
+            
+            // Add AI model change message
+            addMessage('system', `🧠 เปลี่ยน AI Model เป็น ${aiModelNames[aiModelKey]} แล้วครับ!`, 'general');
+        }
 
         function toggleChat() {
             if (isOpen) {
@@ -438,9 +811,14 @@
         function openChat() {
             chatWidget.classList.add('show');
             chatToggle.classList.add('active');
-            chatToggle.innerHTML = '✕';
+            toggleIcon.innerHTML = '×';
             isOpen = true;
             
+            // Hide notification badge
+            notificationBadge.style.display = 'none';
+            hasNewMessages = false;
+            
+            // Focus input after animation
             setTimeout(() => {
                 messageInput.focus();
             }, 300);
@@ -451,9 +829,9 @@
             setTimeout(() => {
                 chatWidget.classList.remove('show', 'hide');
                 chatToggle.classList.remove('active');
-                chatToggle.innerHTML = '💬';
+                toggleIcon.innerHTML = '🤖';
                 isOpen = false;
-            }, 300);
+            }, 200);
         }
 
         // Auto-resize textarea
@@ -473,38 +851,62 @@
         // Send button click
         sendButton.addEventListener('click', sendMessage);
 
-        function addMessage(sender, text) {
+        function addMessage(sender, text, modelKey = currentModel) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
+            messageDiv.className = `message ${sender} ${modelKey}`;
             
-            const avatar = document.createElement('div');
-            avatar.className = 'message-avatar';
-            avatar.textContent = sender === 'user' ? 'You' : 'AI';
+            if (sender !== 'system') {
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                
+                if (sender === 'user') {
+                    avatar.textContent = 'You';
+                } else {
+                    const model = MODEL_CONFIG[modelKey] || MODEL_CONFIG.general;
+                    avatar.textContent = model.avatar;
+                }
+                
+                messageDiv.appendChild(avatar);
+            }
             
             const content = document.createElement('div');
             content.className = 'message-content';
-            content.innerHTML = formatText(text);
             
-            messageDiv.appendChild(avatar);
+            let formattedText = formatText(text);
+            
+            // Add model badge for AI/system messages
+            if (sender === 'ai' || sender === 'system') {
+                const model = MODEL_CONFIG[modelKey] || MODEL_CONFIG.general;
+                const badge = `<div class="model-badge">${model.icon} ${modelKey.charAt(0).toUpperCase() + modelKey.slice(1)}</div>`;
+                formattedText = badge + formattedText;
+            }
+            
+            content.innerHTML = formattedText;
             messageDiv.appendChild(content);
             
             chatMessages.appendChild(messageDiv);
             scrollToBottom();
+
+            // Show notification if chat is closed and it's an AI message
+            if (!isOpen && (sender === 'ai' || sender === 'system')) {
+                showNotification();
+            }
         }
 
         function addTypingIndicator() {
+            const model = MODEL_CONFIG[currentModel];
             const typingDiv = document.createElement('div');
-            typingDiv.className = 'message ai';
+            typingDiv.className = `message ai ${currentModel}`;
             typingDiv.id = 'typingIndicator';
             
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.textContent = 'AI';
+            avatar.textContent = model.avatar;
             
             const indicator = document.createElement('div');
             indicator.className = 'typing-indicator';
             indicator.innerHTML = `
-                กำลังพิมพ์...
+                ${model.name} กำลังพิมพ์...
                 <div class="typing-dots">
                     <div class="typing-dot"></div>
                     <div class="typing-dot"></div>
@@ -528,9 +930,23 @@
             isTyping = false;
         }
 
+        function showNotification() {
+            if (!hasNewMessages) {
+                notificationBadge.style.display = 'flex';
+                hasNewMessages = true;
+                
+                // Add bounce effect to toggle button
+                chatToggle.style.animation = 'none';
+                setTimeout(() => {
+                    chatToggle.style.animation = 'badgeBounce 0.5s ease-out';
+                }, 10);
+            }
+        }
+
         function formatText(text) {
             if (!text) return '';
             
+            // Parse API response
             let cleanText = text;
             try {
                 const parsed = JSON.parse(text);
@@ -538,18 +954,14 @@
                 else if (parsed.response) cleanText = parsed.response;
                 else if (parsed.message) cleanText = parsed.message;
             } catch (e) {
-                // Use text as-is if not JSON
+                // Use as plain text if not JSON
             }
             
-            // Escape HTML
-            const div = document.createElement('div');
-            div.textContent = cleanText;
-            let formatted = div.innerHTML;
-            
-            // Basic markdown formatting
-            formatted = formatted.replace(/\n/g, '<br>');
+            // Basic formatting
+            let formatted = cleanText.replace(/\n/g, '<br>');
             formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            formatted = formatted.replace(/`(.*?)`/g, '<code style="background: rgba(102,126,234,0.1); padding: 2px 4px; border-radius: 3px; font-family: monospace; font-size: 0.9em;">$1</code>');
             
             return formatted;
         }
@@ -564,6 +976,7 @@
             const text = messageInput.value.trim();
             if (!text || isTyping) return;
 
+            const model = MODEL_CONFIG[currentModel];
             addMessage('user', text);
             messageInput.value = '';
             messageInput.style.height = 'auto';
@@ -574,10 +987,39 @@
             try {
                 const formData = new FormData();
                 formData.append('message', text);
+                formData.append('model', currentModel);
+                
+                // ส่งข้อมูลผู้ใช้จาก SharePoint
+                if (currentUser) {
+                    formData.append('user_id', currentUser.id || '');
+                    formData.append('user_email', currentUser.email || '');
+                    formData.append('user_name', currentUser.displayName || '');
+                    formData.append('user_login', currentUser.loginName || '');
+                }
 
-                const response = await fetch(WEBHOOK_URL, {
+                // เลือก webhook ตาม model และ AI model (ถ้าเป็น general)
+                let webhookUrl = model.webhook; // ใช้ webhook เดียวกันหมด
+                if (currentModel === 'general' && model.aiModels && model.aiModels[currentAiModel]) {
+                    webhookUrl = model.aiModels[currentAiModel];
+                    formData.append('ai_model', currentAiModel);
+                }
+
+                console.log(`Sending to ${model.name}`);
+                console.log(`Webhook: ${webhookUrl}`);
+                console.log('User Info:', currentUser);
+                if (currentModel === 'general') {
+                    console.log(`AI Model: ${currentAiModel}`);
+                }
+                
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: {
+                        'X-Model-Type': currentModel,
+                        'X-AI-Model': currentAiModel,
+                        'X-User-Email': currentUser?.email || 'unknown',
+                        'X-User-Name': currentUser?.displayName || 'unknown'
+                    }
                 });
 
                 removeTypingIndicator();
@@ -587,19 +1029,29 @@
                 }
 
                 const result = await response.text();
-                addMessage('ai', result || 'ได้รับข้อความของคุณแล้วค่ะ!');
+                addMessage('ai', result || `${model.name} ได้รับข้อความของคุณแล้วครับ!`);
 
             } catch (error) {
                 removeTypingIndicator();
-                addMessage('ai', `ขอภัยค่ะ เกิดข้อผิดพลาด: ${error.message}`);
-                console.error('Error:', error);
+                addMessage('ai', `ขอภัยครับ เกิดข้อผิดพลาดจาก ${model.name}: ${error.message}<br><br>กรุณาลองใหม่อีกครั้ง หรือเปลี่ยนโมเดลอื่น`);
             } finally {
                 sendButton.disabled = false;
             }
         }
 
         // Initialize
-        console.log('AESCON Chat Widget initialized successfully');
+        console.log('AESCON Multi-Model Toggle Chat พร้อมใช้งาน');
+        
+        // ดึงข้อมูลผู้ใช้ทันทีเมื่อโหลดหน้า
+        fetchCurrentUser();
+        
+        // Auto-show notification after 3 seconds (optional)
+        setTimeout(() => {
+            if (!isOpen && !hasNewMessages) {
+                showNotification();
+            }
+        }, 3000);
+
     </script>
 </body>
 </html>
