@@ -557,7 +557,7 @@
                 <div class="header-top">
                     <div class="chat-title">
                         <div class="status-dot"></div>
-                        <h3>AESCON Assistant</h3>
+                        <h3>AESCON Assistant TEST</h3>
                     </div>
                     <button class="close-btn" id="closeBtn" title="ปิดแชท">×</button>
                 </div>
@@ -703,7 +703,7 @@
             try {
                 // ตรวจสอบว่าอยู่ใน SharePoint หรือไม่
                 if (typeof _spPageContextInfo === 'undefined') {
-                    console.warn('ไม่ได้อยู่ใน SharePoint - ใช้ข้อมูล Demo');
+                    console.warn('⚠️ ไม่ได้อยู่ใน SharePoint - ใช้ข้อมูล Demo');
                     currentUser = {
                         id: 'demo_123',
                         email: 'demo@aescon.com',
@@ -715,60 +715,66 @@
                     return;
                 }
 
-                // วิธีที่ 1: ใช้ SharePoint REST API
-                const response = await fetch(
-                    _spPageContextInfo.webAbsoluteUrl + "/_api/web/currentuser",
-                    {
-                        headers: {
-                            "Accept": "application/json;odata=verbose"
-                        }
-                    }
-                );
-                
-                if (!response.ok) {
-                    throw new Error('SharePoint API failed: ' + response.status);
-                }
-                
-                const data = await response.json();
-                const user = data.d;
+                // ใช้ _spPageContextInfo โดยตรง (ไม่ต้องเรียก API)
+                console.log('📋 _spPageContextInfo:', _spPageContextInfo);
                 
                 currentUser = {
-                    id: user.Id,
-                    email: user.Email,
-                    loginName: user.LoginName,
-                    displayName: user.Title,
+                    id: _spPageContextInfo.userId || 'unknown',
+                    email: _spPageContextInfo.userEmail || _spPageContextInfo.userLoginName || 'unknown@aescon.com',
+                    loginName: _spPageContextInfo.userLoginName || 'unknown',
+                    displayName: _spPageContextInfo.userDisplayName || _spPageContextInfo.userEmail || 'Unknown User',
                     timestamp: new Date().toISOString(),
-                    source: 'sharepoint_api'
+                    source: 'sharepoint_context'
                 };
                 
-                console.log('✅ SharePoint User:', currentUser);
+                console.log('✅ SharePoint User (จาก Context):', currentUser);
+                
+                // ลองเรียก API เป็น fallback (ถ้าได้ก็ดี ถ้าไม่ได้ก็ใช้ context)
+                try {
+                    const response = await fetch(
+                        _spPageContextInfo.webAbsoluteUrl + "/_api/web/currentuser",
+                        {
+                            headers: {
+                                "Accept": "application/json;odata=verbose"
+                            }
+                        }
+                    );
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const user = data.d;
+                        
+                        // อัพเดทด้วยข้อมูลจาก API (สมบูรณ์กว่า)
+                        currentUser = {
+                            id: user.Id,
+                            email: user.Email,
+                            loginName: user.LoginName,
+                            displayName: user.Title,
+                            department: user.Department,
+                            jobTitle: user.JobTitle,
+                            timestamp: new Date().toISOString(),
+                            source: 'sharepoint_api'
+                        };
+                        
+                        console.log('✅ อัพเดท User จาก SharePoint API:', currentUser);
+                    }
+                } catch (apiError) {
+                    console.warn('⚠️ SharePoint API ไม่สำเร็จ ใช้ข้อมูลจาก Context แทน:', apiError.message);
+                }
                 
             } catch (error) {
-                console.error('❌ Error fetching user from SharePoint:', error);
+                console.error('❌ Error fetching user:', error);
                 
-                // Fallback 1: ใช้ข้อมูลจาก _spPageContextInfo ถ้ามี
-                if (typeof _spPageContextInfo !== 'undefined') {
-                    currentUser = {
-                        id: _spPageContextInfo.userId || 'unknown',
-                        email: _spPageContextInfo.userEmail || 'unknown@aescon.com',
-                        loginName: _spPageContextInfo.userLoginName || 'unknown',
-                        displayName: _spPageContextInfo.userDisplayName || 'Unknown User',
-                        timestamp: new Date().toISOString(),
-                        source: 'sharepoint_context'
-                    };
-                    console.log('⚠️ ใช้ข้อมูลจาก _spPageContextInfo:', currentUser);
-                } else {
-                    // Fallback 2: ใช้ข้อมูล default
-                    currentUser = {
-                        id: 'guest_' + Date.now(),
-                        email: 'guest@aescon.com',
-                        loginName: 'guest',
-                        displayName: 'Guest User',
-                        timestamp: new Date().toISOString(),
-                        source: 'fallback'
-                    };
-                    console.log('⚠️ ใช้ข้อมูล Guest:', currentUser);
-                }
+                // Fallback สุดท้าย: ใช้ข้อมูล guest
+                currentUser = {
+                    id: 'guest_' + Date.now(),
+                    email: 'guest@aescon.com',
+                    loginName: 'guest',
+                    displayName: 'Guest User',
+                    timestamp: new Date().toISOString(),
+                    source: 'fallback'
+                };
+                console.log('⚠️ ใช้ข้อมูล Guest:', currentUser);
             }
         }
 
