@@ -701,6 +701,20 @@
         // ดึงข้อมูลผู้ใช้จาก SharePoint
         async function fetchCurrentUser() {
             try {
+                // ตรวจสอบว่าอยู่ใน SharePoint หรือไม่
+                if (typeof _spPageContextInfo === 'undefined') {
+                    console.warn('ไม่ได้อยู่ใน SharePoint - ใช้ข้อมูล Demo');
+                    currentUser = {
+                        id: 'demo_123',
+                        email: 'demo@aescon.com',
+                        loginName: 'demo_user',
+                        displayName: 'Demo User',
+                        timestamp: new Date().toISOString(),
+                        source: 'demo'
+                    };
+                    return;
+                }
+
                 // วิธีที่ 1: ใช้ SharePoint REST API
                 const response = await fetch(
                     _spPageContextInfo.webAbsoluteUrl + "/_api/web/currentuser",
@@ -711,6 +725,10 @@
                     }
                 );
                 
+                if (!response.ok) {
+                    throw new Error('SharePoint API failed: ' + response.status);
+                }
+                
                 const data = await response.json();
                 const user = data.d;
                 
@@ -719,24 +737,37 @@
                     email: user.Email,
                     loginName: user.LoginName,
                     displayName: user.Title,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    source: 'sharepoint_api'
                 };
                 
-                console.log('SharePoint User:', currentUser);
-                
-                // แสดงชื่อผู้ใช้ใน chat header (optional)
-                // document.querySelector('.chat-title h3').textContent = `สวัสดี ${user.Title}`;
+                console.log('✅ SharePoint User:', currentUser);
                 
             } catch (error) {
-                console.error('Error fetching user from SharePoint:', error);
-                // Fallback: ใช้ข้อมูลจาก context ถ้ามี
+                console.error('❌ Error fetching user from SharePoint:', error);
+                
+                // Fallback 1: ใช้ข้อมูลจาก _spPageContextInfo ถ้ามี
                 if (typeof _spPageContextInfo !== 'undefined') {
                     currentUser = {
-                        email: _spPageContextInfo.userEmail,
-                        loginName: _spPageContextInfo.userLoginName,
-                        displayName: _spPageContextInfo.userDisplayName,
-                        timestamp: new Date().toISOString()
+                        id: _spPageContextInfo.userId || 'unknown',
+                        email: _spPageContextInfo.userEmail || 'unknown@aescon.com',
+                        loginName: _spPageContextInfo.userLoginName || 'unknown',
+                        displayName: _spPageContextInfo.userDisplayName || 'Unknown User',
+                        timestamp: new Date().toISOString(),
+                        source: 'sharepoint_context'
                     };
+                    console.log('⚠️ ใช้ข้อมูลจาก _spPageContextInfo:', currentUser);
+                } else {
+                    // Fallback 2: ใช้ข้อมูล default
+                    currentUser = {
+                        id: 'guest_' + Date.now(),
+                        email: 'guest@aescon.com',
+                        loginName: 'guest',
+                        displayName: 'Guest User',
+                        timestamp: new Date().toISOString(),
+                        source: 'fallback'
+                    };
+                    console.log('⚠️ ใช้ข้อมูล Guest:', currentUser);
                 }
             }
         }
@@ -989,12 +1020,21 @@
                 formData.append('message', text);
                 formData.append('model', currentModel);
                 
-                // ส่งข้อมูลผู้ใช้จาก SharePoint
+                // ส่งข้อมูลผู้ใช้ (บังคับส่งเสมอ)
                 if (currentUser) {
-                    formData.append('user_id', currentUser.id || '');
-                    formData.append('user_email', currentUser.email || '');
-                    formData.append('user_name', currentUser.displayName || '');
-                    formData.append('user_login', currentUser.loginName || '');
+                    formData.append('user_id', currentUser.id || 'unknown');
+                    formData.append('user_email', currentUser.email || 'unknown@aescon.com');
+                    formData.append('user_name', currentUser.displayName || 'Unknown User');
+                    formData.append('user_login', currentUser.loginName || 'unknown');
+                    formData.append('user_source', currentUser.source || 'unknown');
+                } else {
+                    // ถ้ายังไม่มี user ให้สร้าง guest
+                    const guestId = 'guest_' + Date.now();
+                    formData.append('user_id', guestId);
+                    formData.append('user_email', 'guest@aescon.com');
+                    formData.append('user_name', 'Guest User');
+                    formData.append('user_login', 'guest');
+                    formData.append('user_source', 'no_user_data');
                 }
 
                 // เลือก webhook ตาม model และ AI model (ถ้าเป็น general)
@@ -1004,12 +1044,18 @@
                     formData.append('ai_model', currentAiModel);
                 }
 
-                console.log(`Sending to ${model.name}`);
-                console.log(`Webhook: ${webhookUrl}`);
-                console.log('User Info:', currentUser);
+                // Log ข้อมูลที่ส่ง
+                console.log('=== ส่งข้อมูลไป n8n ===');
+                console.log(`Model: ${currentModel}`);
                 if (currentModel === 'general') {
                     console.log(`AI Model: ${currentAiModel}`);
                 }
+                console.log('User Info:', currentUser);
+                console.log('FormData:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`  ${key}: ${value}`);
+                }
+                console.log('======================');
                 
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
@@ -1017,8 +1063,9 @@
                     headers: {
                         'X-Model-Type': currentModel,
                         'X-AI-Model': currentAiModel,
-                        'X-User-Email': currentUser?.email || 'unknown',
-                        'X-User-Name': currentUser?.displayName || 'unknown'
+                        'X-User-Email': currentUser?.email || 'unknown@aescon.com',
+                        'X-User-Name': currentUser?.displayName || 'Unknown User',
+                        'X-User-Source': currentUser?.source || 'unknown'
                     }
                 });
 
