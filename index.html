@@ -81,21 +81,51 @@
         .chat-header {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 16px 20px 12px;
+            padding: 16px 20px 16px;
             flex-shrink: 0;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .header-content {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            backdrop-filter: blur(10px);
         }
 
         .header-top {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 12px;
             margin-bottom: 12px;
+        }
+
+        .mascot-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .mascot-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            padding: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
+        }
+
+        .title-greeting {
+            flex: 1;
         }
 
         .chat-title {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            margin-bottom: 4px;
         }
 
         .chat-title h3 {
@@ -117,6 +147,11 @@
             50% { opacity: 0.7; transform: scale(0.95); }
         }
 
+        .mascot-greeting-text {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
         .close-btn {
             background: none;
             border: none;
@@ -127,6 +162,7 @@
             border-radius: 4px;
             transition: all 0.2s;
             line-height: 1;
+            flex-shrink: 0;
         }
 
         .close-btn:hover {
@@ -134,7 +170,7 @@
         }
 
         .dept-selector-wrapper {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .dept-dropdown {
@@ -173,42 +209,6 @@
             padding: 10px;
         }
 
-        .chat-mascot {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-        }
-
-        .mascot-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: white;
-            padding: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .mascot-greeting {
-            margin-left: 12px;
-            flex: 1;
-        }
-
-        .mascot-greeting-title {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        .mascot-greeting-text {
-            font-size: 10px;
-            opacity: 0.9;
-        }
-
         .current-selection {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
@@ -229,7 +229,7 @@
         }
 
         .ai-model-selector {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             padding: 8px;
             backdrop-filter: blur(10px);
@@ -514,45 +514,45 @@
 
         <div class="chat-widget show" id="chatWidget">
             <div class="chat-header">
-                <div class="header-top">
-                    <div class="chat-title">
-                        <div class="status-dot"></div>
-                        <h3>AESCON Assistant</h3>
+                <div class="header-content">
+                    <div class="header-top">
+                        <div class="mascot-section">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='90' fill='%23a8b3c7'/%3E%3Ccircle cx='75' cy='85' r='12' fill='%2387ceeb'/%3E%3Ccircle cx='125' cy='85' r='12' fill='%2387ceeb'/%3E%3Cpath d='M75 115 Q100 130 125 115' stroke='%23333' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='100' cy='50' r='40' fill='%23ffd700'/%3E%3Ctext x='100' y='58' font-size='24' text-anchor='middle' fill='%23333'%3E👷%3C/text%3E%3C/svg%3E" 
+                                 alt="AESCON Bot" 
+                                 class="mascot-image">
+                            <div class="title-greeting">
+                                <div class="chat-title">
+                                    <div class="status-dot"></div>
+                                    <h3>AESCON Assistant</h3>
+                                </div>
+                                <div class="mascot-greeting-text">👋 สวัสดีครับ! ผมพร้อมช่วยทุกแผนก</div>
+                            </div>
+                        </div>
+                        <button class="close-btn" id="closeBtn">×</button>
                     </div>
-                    <button class="close-btn" id="closeBtn">×</button>
-                </div>
-                
-                <div class="chat-mascot">
-                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='90' fill='%23a8b3c7'/%3E%3Ccircle cx='75' cy='85' r='12' fill='%2387ceeb'/%3E%3Ccircle cx='125' cy='85' r='12' fill='%2387ceeb'/%3E%3Cpath d='M75 115 Q100 130 125 115' stroke='%23333' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='100' cy='50' r='40' fill='%23ffd700'/%3E%3Ctext x='100' y='58' font-size='24' text-anchor='middle' fill='%23333'%3E👷%3C/text%3E%3C/svg%3E" 
-                         alt="AESCON Bot" 
-                         class="mascot-image">
-                    <div class="mascot-greeting">
-                        <div class="mascot-greeting-title">👋 สวัสดีครับ!</div>
-                        <div class="mascot-greeting-text">ผมพร้อมช่วยทุกแผนก</div>
+
+                    <div class="dept-selector-wrapper">
+                        <select class="dept-dropdown" id="deptDropdown">
+                            <option value="general">💬 ทั่วไป - คำถามทั่วไป</option>
+                            <option value="safety">🛡️ Safety & ENV - ความปลอดภัยและสิ่งแวดล้อม</option>
+                            <option value="warehouse">📦 Warehouse - คลังสินค้า</option>
+                            <option value="logistic">🚚 Logistic - ขนส่งและโลจิสติกส์</option>
+                            <option value="maintenance">🔧 Maintenance - ซ่อมบำรุง</option>
+                            <option value="qc">✅ QC - ควบคุมคุณภาพ</option>
+                            <option value="accounting">💰 Accounting - บัญชีและการเงิน</option>
+                            <option value="engineering">⚙️ Engineering - วิศวกรรมและออกแบบ</option>
+                            <option value="project">📊 Project - โครงการและผลิต</option>
+                            <option value="sales">📈 Sales - ขายและการตลาด</option>
+                            <option value="purchase">🛒 Purchase - จัดซื้อ</option>
+                        </select>
                     </div>
-                </div>
 
-                <div class="dept-selector-wrapper">
-                    <select class="dept-dropdown" id="deptDropdown">
-                        <option value="general">💬 ทั่วไป - คำถามทั่วไป</option>
-                        <option value="safety">🛡️ Safety & ENV - ความปลอดภัยและสิ่งแวดล้อม</option>
-                        <option value="warehouse">📦 Warehouse - คลังสินค้า</option>
-                        <option value="logistic">🚚 Logistic - ขนส่งและโลจิสติกส์</option>
-                        <option value="maintenance">🔧 Maintenance - ซ่อมบำรุง</option>
-                        <option value="qc">✅ QC - ควบคุมคุณภาพ</option>
-                        <option value="accounting">💰 Accounting - บัญชีและการเงิน</option>
-                        <option value="engineering">⚙️ Engineering - วิศวกรรมและออกแบบ</option>
-                        <option value="project">📊 Project - โครงการและผลิต</option>
-                        <option value="sales">📈 Sales - ขายและการตลาด</option>
-                        <option value="purchase">🛒 Purchase - จัดซื้อ</option>
-                    </select>
-                </div>
-
-                <div class="ai-model-selector show" id="aiModelSelector">
-                    <div class="ai-model-label">🧠 เลือก AI:</div>
-                    <div class="ai-model-options">
-                        <button class="ai-model-option active" data-ai-model="gpt4">ChatGPT</button>
-                        <button class="ai-model-option" data-ai-model="gemini">Gemini</button>
+                    <div class="ai-model-selector show" id="aiModelSelector">
+                        <div class="ai-model-label">🧠 เลือก AI:</div>
+                        <div class="ai-model-options">
+                            <button class="ai-model-option active" data-ai-model="gpt4">ChatGPT</button>
+                            <button class="ai-model-option" data-ai-model="gemini">Gemini</button>
+                        </div>
                     </div>
                 </div>
             </div>
