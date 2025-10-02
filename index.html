@@ -824,7 +824,19 @@
 
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-                const result = await response.text();
+                let result = await response.text();
+                
+                // ตรวจสอบว่า response เป็น JSON หรือไม่
+                try {
+                    const jsonResult = JSON.parse(result);
+                    // ถ้ามี key "output" ให้ใช้ค่านั้น
+                    if (jsonResult.output) {
+                        result = jsonResult.output;
+                    }
+                } catch (e) {
+                    // ถ้า parse ไม่ได้ แสดงว่าเป็น text ธรรมดา ใช้ result เดิม
+                }
+                
                 addMessage('ai', result || `${MODEL_CONFIG[currentModel].name} ได้รับข้อความแล้วครับ!`);
 
             } catch (error) {
