@@ -349,7 +349,6 @@
             white-space: pre-line;
         }
 
-        /* Improved formatting for AI messages */
         .message-content p {
             margin: 8px 0;
         }
@@ -699,27 +698,15 @@
             const content = document.createElement('div');
             content.className = 'message-content';
             
-            // ปรับปรุงการจัด format ข้อความ
             let formatted = text;
-            
-            // แปลง markdown-style bullet points
             formatted = formatted.replace(/^\s*[-•]\s+/gm, '• ');
             formatted = formatted.replace(/^\s*\*\s+(?!\*)/gm, '• ');
-            
-            // จัดการ numbered lists
             formatted = formatted.replace(/^\s*(\d+)\.\s+/gm, '$1. ');
-            
-            // แปลง bold text (**text** -> <strong>text</strong>)
             formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-            
-            // แปลง line breaks - เพิ่ม spacing ระหว่าง paragraphs
             formatted = formatted.replace(/\n\n+/g, '<br><br>');
             formatted = formatted.replace(/\n/g, '<br>');
-            
-            // เพิ่ม spacing หลัง bullet points
             formatted = formatted.replace(/•\s*/g, '• ');
             
-            // ถ้าเป็น AI response ให้เพิ่ม badge
             if (sender === 'ai' || sender === 'system') {
                 const model = MODEL_CONFIG[modelKey];
                 formatted = `<div class="model-badge">${model.icon} ${model.name}</div>` + formatted;
@@ -815,10 +802,8 @@
 
                 let result = await response.text();
                 
-                // ตรวจสอบว่า response เป็น JSON หรือไม่
                 try {
                     const jsonResult = JSON.parse(result);
-                    // ถ้ามี key "output" ให้ใช้ค่านั้น
                     if (jsonResult.output) {
                         result = jsonResult.output;
                     }
@@ -840,73 +825,116 @@
             console.log('🔍 กำลังตรวจสอบข้อมูลผู้ใช้...');
             
             try {
-                if (typeof _spPageContextInfo !== 'undefined') {
+                // วิธีที่ 1: ตรวจสอบ _spPageContextInfo
+                if (typeof _spPageContextInfo !== 'undefined' && _spPageContextInfo !== null) {
                     console.log('📋 _spPageContextInfo พบ:', _spPageContextInfo);
                     
-                    if (_spPageContextInfo.userEmail || _spPageContextInfo.userId) {
+                    const userId = _spPageContextInfo.userId || _spPageContextInfo.userLoginName;
+                    const userEmail = _spPageContextInfo.userEmail || _spPageContextInfo.userLoginName;
+                    const displayName = _spPageContextInfo.userDisplayName || userEmail;
+                    
+                    if (userId || userEmail) {
                         currentUser = {
-                            id: _spPageContextInfo.userId || 'sp_' + Date.now(),
-                            email: _spPageContextInfo.userEmail || _spPageContextInfo.userLoginName || 'unknown@aescon.com',
-                            loginName: _spPageContextInfo.userLoginName || 'unknown',
-                            displayName: _spPageContextInfo.userDisplayName || _spPageContextInfo.userEmail || 'SharePoint User',
+                            id: userId || 'sp_' + Date.now(),
+                            email: userEmail || 'unknown@aescon.com',
+                            loginName: _spPageContextInfo.userLoginName || userEmail || 'unknown',
+                            displayName: displayName || 'SharePoint User',
                             timestamp: new Date().toISOString(),
                             source: 'sharepoint_context'
                         };
                         console.log('✅ ใช้ข้อมูลจาก _spPageContextInfo:', currentUser);
-                        return;
+                        return currentUser;
                     }
                 }
                 
-                const meControl = document.querySelector('[data-automationid="me-control"]');
-                const userButton = document.querySelector('button[data-testid="persona-button"]');
-                const personaCard = document.querySelector('.ms-Persona-primaryText');
-                
-                let displayName = null;
-                
-                if (meControl) {
-                    displayName = meControl.getAttribute('title') || meControl.textContent;
-                } else if (userButton) {
-                    displayName = userButton.getAttribute('aria-label') || userButton.textContent;
-                } else if (personaCard) {
-                    displayName = personaCard.textContent;
+                // วิธีที่ 2: ลอง REST API
+                try {
+                    const response = await fetch('/_api/web/currentuser', {
+                        headers: { 'Accept': 'application/json;odata=verbose' }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const user = data.d;
+                        
+                        currentUser = {
+                            id: user.Id || 'sp_' + Date.now(),
+                            email: user.Email || user.LoginName || 'unknown@aescon.com',
+                            loginName: user.LoginName || 'unknown',
+                            displayName: user.Title || user.Email || 'SharePoint User',
+                            timestamp: new Date().toISOString(),
+                            source: 'rest_api'
+                        };
+                        console.log('✅ ใช้ข้อมูลจาก REST API:', currentUser);
+                        return currentUser;
+                    }
+                } catch (apiError) {
+                    console.log('ℹ️ REST API ไม่สามารถใช้ได้:', apiError.message);
                 }
                 
-                if (displayName) {
-                    console.log('✅ พบชื่อผู้ใช้จาก DOM:', displayName);
-                    currentUser = {
-                        id: 'sp_' + Date.now(),
-                        email: displayName.includes('@') ? displayName : displayName + '@aescon.com',
-                        loginName: displayName,
-                        displayName: displayName,
-                        timestamp: new Date().toISOString(),
-                        source: 'dom_extraction'
-                    };
-                    return;
+                // วิธีที่ 3: ดึงจาก DOM
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const selectors = [
+                    '[data-automationid="me-control"]',
+                    'button[data-testid="persona-button"]',
+                    '.ms-Persona-primaryText',
+                    '[aria-label*="@"]',
+                    '.o365cs-nav-userLink'
+                ];
+                
+                for (const selector of selectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        const displayName = element.getAttribute('title') || 
+                                          element.getAttribute('aria-label') || 
+                                          element.textContent.trim();
+                        
+                        if (displayName) {
+                            console.log('✅ พบชื่อผู้ใช้จาก DOM:', displayName);
+                            currentUser = {
+                                id: 'sp_dom_' + Date.now(),
+                                email: displayName.includes('@') ? displayName : displayName + '@aescon.com',
+                                loginName: displayName,
+                                displayName: displayName,
+                                timestamp: new Date().toISOString(),
+                                source: 'dom_extraction'
+                            };
+                            return currentUser;
+                        }
+                    }
                 }
                 
-                console.warn('⚠️ ไม่พบข้อมูลผู้ใช้ - ใช้โหมด Demo');
+                console.warn('⚠️ ไม่พบข้อมูลผู้ใช้จากทุกวิธี');
                 
             } catch (error) {
-                console.error('❌ Error:', error);
+                console.error('❌ Error in fetchCurrentUser:', error);
             }
             
+            // Fallback: ใช้โหมด Guest
             currentUser = {
-                id: 'demo_' + Date.now(),
-                email: 'demo@aescon.com',
-                loginName: 'demo_user',
-                displayName: 'Demo User',
+                id: 'guest_' + Date.now(),
+                email: 'guest@aescon.com',
+                loginName: 'guest_user',
+                displayName: 'Guest User',
                 timestamp: new Date().toISOString(),
-                source: 'demo'
+                source: 'fallback_guest'
             };
-            console.log('⚠️ ใช้โหมด Demo:', currentUser);
+            console.log('⚠️ ใช้โหมด Guest:', currentUser);
+            return currentUser;
         }
 
-        console.log('AESCON Chat Widget พร้อมใช้งาน');
+        // เริ่มต้น Widget
+        console.log('🚀 AESCON Chat Widget กำลังเริ่มต้น...');
         console.log('Environment check:');
-        console.log('- _spPageContextInfo:', typeof _spPageContextInfo !== 'undefined' ? 'พบ' : 'ไม่พบ');
+        console.log('- _spPageContextInfo:', typeof _spPageContextInfo !== 'undefined' ? 'พบ ✅' : 'ไม่พบ ❌');
         console.log('- Location:', window.location.href);
         
-        fetchCurrentUser();
+        // เรียก fetchCurrentUser และรอให้เสร็จก่อน
+        (async () => {
+            await fetchCurrentUser();
+            console.log('✅ Widget พร้อมใช้งาน - User:', currentUser);
+        })();
     </script>
 </body>
 </html>
