@@ -81,7 +81,7 @@
         .chat-header {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 16px 20px;
+            padding: 16px 20px 16px;
             flex-shrink: 0;
             border-radius: 20px 20px 0 0;
         }
@@ -112,6 +112,7 @@
             height: 50px;
             border-radius: 50%;
             background: white;
+            padding: 0;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             flex-shrink: 0;
             object-fit: cover;
@@ -163,7 +164,7 @@
             gap: 6px;
         }
 
-        .user-icon {
+        .user-info-badge .user-icon {
             font-size: 12px;
         }
 
@@ -184,6 +185,10 @@
             background: rgba(255, 255, 255, 0.15);
         }
 
+        .dept-selector-wrapper {
+            margin-bottom: 12px;
+        }
+
         .dept-dropdown {
             width: 100%;
             padding: 10px 14px;
@@ -202,16 +207,22 @@
             background-position: right 10px center;
             background-size: 20px;
             padding-right: 40px;
-            margin-bottom: 12px;
         }
 
         .dept-dropdown:hover {
             background: rgba(255, 255, 255, 0.3);
         }
 
+        .dept-dropdown:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+
         .dept-dropdown option {
             background: #667eea;
             color: white;
+            padding: 10px;
         }
 
         .ai-model-selector {
@@ -310,11 +321,12 @@
 
         .message-content {
             max-width: 280px;
-            padding: 10px 16px 12px;
+            padding: 10px 16px 12px 16px;
             border-radius: 18px;
             font-size: 14px;
             line-height: 1.6;
             word-wrap: break-word;
+            word-break: break-word;
         }
 
         .message.user .message-content {
@@ -447,6 +459,13 @@
             background: rgba(102, 126, 234, 0.3);
             border-radius: 2px;
         }
+
+        @media screen and (max-width: 480px) {
+            .chat-widget {
+                width: calc(100vw - 40px);
+                height: 600px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -463,13 +482,13 @@
                             <img src="https://img5.pic.in.th/file/secure-sv1/7625-removebg-preview.png" 
                                  alt="AESCON Bot" 
                                  class="mascot-image"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'%3E%3Ccircle cx=\'100\' cy=\'100\' r=\'90\' fill=\'%23a8b3c7\'/%3E%3C/svg%3E'">
+                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'%3E%3Ccircle cx=\'100\' cy=\'100\' r=\'90\' fill=\'%23a8b3c7\'/%3E%3Ccircle cx=\'75\' cy=\'85\' r=\'12\' fill=\'%2387ceeb\'/%3E%3Ccircle cx=\'125\' cy=\'85\' r=\'12\' fill=\'%2387ceeb\'/%3E%3Cpath d=\'M75 115 Q100 130 125 115\' stroke=\'%23333\' stroke-width=\'4\' fill=\'none\' stroke-linecap=\'round\'/%3E%3Ccircle cx=\'100\' cy=\'50\' r=\'40\' fill=\'%23ffd700\'/%3E%3Ctext x=\'100\' y=\'58\' font-size=\'24\' text-anchor=\'middle\' fill=\'%23333\'%3E👷%3C/text%3E%3C/svg%3E'">
                             <div class="title-greeting">
                                 <div class="chat-title">
                                     <div class="status-dot"></div>
                                     <h3>AESCON Assistant</h3>
                                 </div>
-                                <div class="mascot-greeting-text">👋 สวัสดีครับ!</div>
+                                <div class="mascot-greeting-text">👋 สวัสดีครับ! น้องเอสมาแล้ว</div>
                                 <div class="user-info-badge" id="userInfoBadge">
                                     <span class="user-icon">👤</span>
                                     <span id="userDisplayName">กำลังโหลด...</span>
@@ -479,19 +498,21 @@
                         <button class="close-btn" id="closeBtn">×</button>
                     </div>
 
-                    <select class="dept-dropdown" id="deptDropdown">
-                        <option value="general">💬 ทั่วไป</option>
-                        <option value="safety">🛡️ Safety & ENV</option>
-                        <option value="warehouse">📦 Warehouse</option>
-                        <option value="logistic">🚚 Logistic</option>
-                        <option value="maintenance">🔧 Maintenance</option>
-                        <option value="qc">✅ QC</option>
-                        <option value="accounting">💰 Accounting</option>
-                        <option value="engineering">⚙️ Engineering</option>
-                        <option value="project">📊 Project</option>
-                        <option value="sales">📈 Sales</option>
-                        <option value="purchase">🛒 Purchase</option>
-                    </select>
+                    <div class="dept-selector-wrapper">
+                        <select class="dept-dropdown" id="deptDropdown">
+                            <option value="general">💬 ทั่วไป - คำถามทั่วไป</option>
+                            <option value="safety">🛡️ Safety & ENV - ความปลอดภัยและสิ่งแวดล้อม</option>
+                            <option value="warehouse">📦 Warehouse - คลังสินค้า</option>
+                            <option value="logistic">🚚 Logistic - ขนส่งและโลจิสติกส์</option>
+                            <option value="maintenance">🔧 Maintenance - ซ่อมบำรุง</option>
+                            <option value="qc">✅ QC - ควบคุมคุณภาพ</option>
+                            <option value="accounting">💰 Accounting - บัญชีและการเงิน</option>
+                            <option value="engineering">⚙️ Engineering - วิศวกรรมและออกแบบ</option>
+                            <option value="project">📊 Project - โครงการและผลิต</option>
+                            <option value="sales">📈 Sales - ขายและการตลาด</option>
+                            <option value="purchase">🛒 Purchase - จัดซื้อ</option>
+                        </select>
+                    </div>
 
                     <div class="ai-model-selector show" id="aiModelSelector">
                         <div class="ai-model-label">🧠 เลือก AI:</div>
@@ -508,7 +529,7 @@
                     <div class="message-avatar">AI</div>
                     <div class="message-content">
                         <div class="model-badge">💬 ทั่วไป</div>
-                        <strong>หมดทุกข้อสงสัย!</strong><br>น้องเอส ผู้ช่วยที่พร้อมให้บริการคุณ<br><br>เลือกแผนกที่ต้องการด้านบนได้เลยครับ
+                        <strong>หมดทุกข้อสงสัย!</strong><br>น้องเอส ผู้ช่วยที่พร้อมจะทำให้การทำงานของคุณง่ายขึ้นแบบ⚡ 100% ⚡<br><br>อยากได้ข้อมูล <strong>แผนก</strong> ไหนเป็นพิเศษ? เลือกด้านบนได้เลยครับ<br>
                     </div>
                 </div>
             </div>
@@ -518,7 +539,7 @@
                     <textarea 
                         id="messageInput" 
                         class="message-input" 
-                        placeholder="พิมพ์ข้อความ..."
+                        placeholder="พิมพ์ข้อความของคุณ..."
                         rows="1"
                     ></textarea>
                     <button class="send-button" id="sendButton">➤</button>
@@ -530,18 +551,25 @@
     <script>
         const WEBHOOK_URL = 'https://aescon.zethn8n.work/webhook/953c7856-8ba0-45cd-9540-c29fb6a785d7/chat';
         
+        // ⚙️ การตั้งค่า SharePoint List (ถ้าต้องการบันทึกลง SharePoint)
+        const SHAREPOINT_CONFIG = {
+            enabled: true, // เปลี่ยนเป็น true ถ้าต้องการบันทึก
+            listName: 'ChatbotLogs', // ชื่อ List ใน SharePoint
+            siteUrl: '' // ถ้าว่างจะใช้ current site
+        };
+        
         const MODEL_CONFIG = {
-            general: { name: 'ทั่วไป', icon: '💬', avatar: 'AI' },
-            safety: { name: 'Safety', icon: '🛡️', avatar: 'SF' },
-            warehouse: { name: 'Warehouse', icon: '📦', avatar: 'WH' },
-            logistic: { name: 'Logistic', icon: '🚚', avatar: 'LG' },
-            maintenance: { name: 'Maintenance', icon: '🔧', avatar: 'MT' },
-            qc: { name: 'QC', icon: '✅', avatar: 'QC' },
-            accounting: { name: 'Accounting', icon: '💰', avatar: 'AC' },
-            engineering: { name: 'Engineering', icon: '⚙️', avatar: 'EN' },
-            project: { name: 'Project', icon: '📊', avatar: 'PJ' },
-            sales: { name: 'Sales', icon: '📈', avatar: 'SL' },
-            purchase: { name: 'Purchase', icon: '🛒', avatar: 'PU' }
+            general: { name: 'ทั่วไป', description: 'คำถามทั่วไป', icon: '💬', avatar: 'AI' },
+            safety: { name: 'Safety & ENV', description: 'ความปลอดภัยและสิ่งแวดล้อม', icon: '🛡️', avatar: 'SF' },
+            warehouse: { name: 'Warehouse', description: 'คลังสินค้า', icon: '📦', avatar: 'WH' },
+            logistic: { name: 'Logistic', description: 'ขนส่งและจัดการโลจิสติกส์', icon: '🚚', avatar: 'LG' },
+            maintenance: { name: 'Maintenance', description: 'ซ่อมบำรุง', icon: '🔧', avatar: 'MT' },
+            qc: { name: 'QC', description: 'ควบคุมคุณภาพ', icon: '✅', avatar: 'QC' },
+            accounting: { name: 'Accounting', description: 'บัญชีและการเงิน', icon: '💰', avatar: 'AC' },
+            engineering: { name: 'Engineering', description: 'วิศวกรรมและออกแบบ', icon: '⚙️', avatar: 'EN' },
+            project: { name: 'Project', description: 'โครงการและผลิต', icon: '📊', avatar: 'PJ' },
+            sales: { name: 'Sales', description: 'ขายและการตลาด', icon: '📈', avatar: 'SL' },
+            purchase: { name: 'Purchase', description: 'จัดซื้อ', icon: '🛒', avatar: 'PU' }
         };
 
         let currentModel = 'general';
@@ -549,6 +577,7 @@
         let isOpen = true;
         let isTyping = false;
         let currentUser = null;
+        let userLoadingPromise = null;
 
         const chatToggle = document.getElementById('chatToggle');
         const chatWidget = document.getElementById('chatWidget');
@@ -560,120 +589,201 @@
         const aiModelSelector = document.getElementById('aiModelSelector');
         const userDisplayName = document.getElementById('userDisplayName');
 
-        // ฟังก์ชันดึงข้อมูลผู้ใช้ - รองรับหลายวิธี
+        // ฟังก์ชันดึงข้อมูลผู้ใช้จาก SharePoint
         async function fetchCurrentUser() {
-            console.log('🔍 กำลังดึงข้อมูลผู้ใช้...');
+            console.log('🔍 กำลังตรวจสอบข้อมูลผู้ใช้...');
             
-            // วิธีที่ 1: SharePoint REST API /_api/web/currentuser
             try {
-                const response = await fetch('/_api/web/currentuser', {
-                    headers: { 'Accept': 'application/json;odata=nometadata' }
-                });
+                // วิธีที่ 1: ตรวจสอบ _spPageContextInfo (เร็วที่สุด)
+                if (typeof _spPageContextInfo !== 'undefined' && _spPageContextInfo !== null) {
+                    console.log('📋 _spPageContextInfo พบ:', _spPageContextInfo);
+                    
+                    const userId = _spPageContextInfo.userId || _spPageContextInfo.userLoginName;
+                    const userEmail = _spPageContextInfo.userEmail || _spPageContextInfo.userLoginName;
+                    const displayName = _spPageContextInfo.userDisplayName || userEmail;
+                    
+                    if (userId || userEmail) {
+                        currentUser = {
+                            id: userId || 'sp_' + Date.now(),
+                            email: userEmail || 'unknown@aescon.com',
+                            loginName: _spPageContextInfo.userLoginName || userEmail || 'unknown',
+                            displayName: displayName || 'SharePoint User',
+                            timestamp: new Date().toISOString(),
+                            source: 'sharepoint_context'
+                        };
+                        console.log('✅ ใช้ข้อมูลจาก _spPageContextInfo:', currentUser);
+                        updateUserDisplay();
+                        return currentUser;
+                    }
+                }
                 
-                if (response.ok) {
-                    const user = await response.json();
-                    currentUser = {
-                        id: user.Id || 'sp_' + Date.now(),
-                        email: user.Email || user.LoginName || 'unknown@aescon.com',
-                        loginName: user.LoginName || 'unknown',
-                        displayName: user.Title || user.Email || 'SharePoint User',
-                        timestamp: new Date().toISOString(),
-                        source: 'sp_rest_api'
-                    };
-                    console.log('✅ ดึงข้อมูลจาก REST API สำเร็จ:', currentUser);
-                    updateUserDisplay();
-                    return currentUser;
-                }
-            } catch (error) {
-                console.log('ℹ️ REST API ไม่สามารถใช้ได้:', error.message);
-            }
-
-            // วิธีที่ 2: ดึงจาก DOM (หา email/username จากหน้าเว็บ)
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
-            const selectors = [
-                '[data-automation-id="myaccount-email"]',
-                '[data-automationid="me-control"]',
-                'button[data-testid="persona-button"]',
-                '.ms-Persona-primaryText',
-                '[aria-label*="@"]',
-                '.o365cs-nav-userLink',
-                '[data-automation-id="me-control"]'
-            ];
-            
-            for (const selector of selectors) {
-                const element = document.querySelector(selector);
-                if (element) {
-                    let displayName = element.getAttribute('title') || 
-                                    element.getAttribute('aria-label') || 
-                                    element.textContent.trim();
-                    
-                    displayName = displayName.replace(/\s+/g, ' ').trim();
-                    
-                    if (displayName && displayName.length > 2 && !displayName.includes('undefined')) {
-                        console.log('✅ พบชื่อจาก DOM:', displayName);
-                        currentUser = {
-                            id: 'sp_dom_' + Date.now(),
-                            email: displayName.includes('@') ? displayName : displayName + '@aescon.com',
-                            loginName: displayName,
-                            displayName: displayName,
-                            timestamp: new Date().toISOString(),
-                            source: 'dom_extraction'
-                        };
-                        updateUserDisplay();
-                        return currentUser;
-                    }
-                }
-            }
-
-            // วิธีที่ 3: ดึงจาก Microsoft Teams context (ถ้ามี)
-            if (typeof microsoftTeams !== 'undefined') {
+                // วิธีที่ 2: ลอง REST API
                 try {
-                    microsoftTeams.app.initialize();
-                    const context = await microsoftTeams.app.getContext();
-                    if (context.user) {
+                    const siteUrl = SHAREPOINT_CONFIG.siteUrl || 
+                                   (typeof _spPageContextInfo !== 'undefined' ? _spPageContextInfo.webAbsoluteUrl : '');
+                    
+                    const response = await fetch(`${siteUrl}/_api/web/currentuser`, {
+                        headers: { 'Accept': 'application/json;odata=verbose' }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const user = data.d;
+                        
                         currentUser = {
-                            id: context.user.id,
-                            email: context.user.userPrincipalName,
-                            loginName: context.user.loginHint,
-                            displayName: context.user.displayName || context.user.userPrincipalName,
+                            id: user.Id || 'sp_' + Date.now(),
+                            email: user.Email || user.LoginName || 'unknown@aescon.com',
+                            loginName: user.LoginName || 'unknown',
+                            displayName: user.Title || user.Email || 'SharePoint User',
                             timestamp: new Date().toISOString(),
-                            source: 'teams_context'
+                            source: 'rest_api'
                         };
-                        console.log('✅ ดึงข้อมูลจาก Teams สำเร็จ:', currentUser);
+                        console.log('✅ ใช้ข้อมูลจาก REST API:', currentUser);
                         updateUserDisplay();
                         return currentUser;
                     }
-                } catch (error) {
-                    console.log('ℹ️ Teams context ไม่พร้อมใช้งาน');
+                } catch (apiError) {
+                    console.log('ℹ️ REST API ไม่สามารถใช้ได้:', apiError.message);
                 }
+                
+                // วิธีที่ 3: ดึงจาก DOM
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const selectors = [
+                    '[data-automationid="me-control"]',
+                    'button[data-testid="persona-button"]',
+                    '.ms-Persona-primaryText',
+                    '[aria-label*="@"]',
+                    '.o365cs-nav-userLink'
+                ];
+                
+                for (const selector of selectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        const displayName = element.getAttribute('title') || 
+                                          element.getAttribute('aria-label') || 
+                                          element.textContent.trim();
+                        
+                        if (displayName && displayName.length > 2) {
+                            console.log('✅ พบชื่อผู้ใช้จาก DOM:', displayName);
+                            currentUser = {
+                                id: 'sp_dom_' + Date.now(),
+                                email: displayName.includes('@') ? displayName : displayName + '@aescon.com',
+                                loginName: displayName,
+                                displayName: displayName,
+                                timestamp: new Date().toISOString(),
+                                source: 'dom_extraction'
+                            };
+                            updateUserDisplay();
+                            return currentUser;
+                        }
+                    }
+                }
+                
+                console.warn('⚠️ ไม่พบข้อมูลผู้ใช้จากทุกวิธี');
+                
+            } catch (error) {
+                console.error('❌ Error in fetchCurrentUser:', error);
             }
-
-            // Fallback: ใช้โหมด Anonymous
-            console.warn('⚠️ ไม่สามารถดึงข้อมูลผู้ใช้ได้ - ใช้โหมด Anonymous');
+            
+            // Fallback: ใช้โหมด Guest
             currentUser = {
-                id: 'anon_' + Date.now(),
-                email: 'anonymous@aescon.com',
-                loginName: 'anonymous',
-                displayName: 'ผู้ใช้ AESCON',
+                id: 'guest_' + Date.now(),
+                email: 'guest@aescon.com',
+                loginName: 'guest_user',
+                displayName: 'Guest User',
                 timestamp: new Date().toISOString(),
-                source: 'anonymous'
+                source: 'fallback_guest'
             };
+            console.log('⚠️ ใช้โหมด Guest:', currentUser);
             updateUserDisplay();
             return currentUser;
         }
 
+        // อัปเดตการแสดงชื่อผู้ใช้
         function updateUserDisplay() {
             if (currentUser) {
-                const displayText = currentUser.displayName !== 'ผู้ใช้ AESCON' 
+                const displayText = currentUser.displayName !== 'Guest User' 
                     ? currentUser.displayName 
                     : 'ผู้ใช้ทั่วไป';
                 userDisplayName.textContent = displayText;
-                console.log('📝 แสดงชื่อผู้ใช้:', displayText);
             }
         }
 
-        // Event Handlers
+        // ฟังก์ชันบันทึกลง SharePoint List
+        async function saveToSharePointList(conversationData) {
+            if (!SHAREPOINT_CONFIG.enabled) {
+                console.log('ℹ️ SharePoint logging disabled');
+                return;
+            }
+
+            try {
+                const siteUrl = SHAREPOINT_CONFIG.siteUrl || 
+                               (typeof _spPageContextInfo !== 'undefined' ? _spPageContextInfo.webAbsoluteUrl : '');
+                
+                if (!siteUrl) {
+                    console.warn('⚠️ ไม่พบ Site URL สำหรับบันทึก');
+                    return;
+                }
+
+                // ดึง Request Digest Token
+                const digestResponse = await fetch(`${siteUrl}/_api/contextinfo`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json;odata=verbose',
+                        'Content-Type': 'application/json;odata=verbose'
+                    }
+                });
+
+                if (!digestResponse.ok) {
+                    throw new Error('ไม่สามารถดึง Request Digest ได้');
+                }
+
+                const digestData = await digestResponse.json();
+                const requestDigest = digestData.d.GetContextWebInformation.FormDigestValue;
+
+                // บันทึกข้อมูล
+                const itemData = {
+                    '__metadata': { 
+                        'type': `SP.Data.${SHAREPOINT_CONFIG.listName}ListItem` 
+                    },
+                    'Title': conversationData.user.displayName,
+                    'UserEmail': conversationData.user.email,
+                    'UserLoginName': conversationData.user.loginName,
+                    'UserMessage': conversationData.message,
+                    'BotResponse': conversationData.response,
+                    'Department': conversationData.department,
+                    'AIModel': conversationData.aiModel,
+                    'Timestamp': conversationData.timestamp,
+                    'UserSource': conversationData.user.source
+                };
+
+                const response = await fetch(
+                    `${siteUrl}/_api/web/lists/getbytitle('${SHAREPOINT_CONFIG.listName}')/items`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json;odata=verbose',
+                            'Content-Type': 'application/json;odata=verbose',
+                            'X-RequestDigest': requestDigest
+                        },
+                        body: JSON.stringify(itemData)
+                    }
+                );
+
+                if (response.ok) {
+                    console.log('✅ บันทึกลง SharePoint สำเร็จ');
+                } else {
+                    const errorText = await response.text();
+                    console.error('❌ บันทึกลง SharePoint ไม่สำเร็จ:', errorText);
+                }
+
+            } catch (error) {
+                console.error('❌ Error saving to SharePoint:', error);
+            }
+        }
+
+        // UI Event Handlers
         chatToggle.addEventListener('click', () => {
             isOpen ? closeChat() : openChat();
         });
@@ -682,22 +792,40 @@
         sendButton.addEventListener('click', sendMessage);
 
         deptDropdown.addEventListener('change', (e) => {
-            currentModel = e.target.value;
-            if (currentModel === 'general') {
+            selectModel(e.target.value);
+        });
+
+        document.querySelectorAll('.ai-model-option').forEach(btn => {
+            btn.addEventListener('click', () => selectAiModel(btn.dataset.aiModel));
+        });
+
+        function selectModel(modelKey) {
+            const model = MODEL_CONFIG[modelKey];
+            if (!model) return;
+
+            currentModel = modelKey;
+            deptDropdown.value = modelKey;
+            
+            if (modelKey === 'general') {
                 aiModelSelector.classList.add('show');
             } else {
                 aiModelSelector.classList.remove('show');
             }
-        });
+            
+            addMessage('system', `เปลี่ยนเป็น ${model.name} แล้วครับ พร้อมให้บริการ!`, modelKey);
+        }
 
-        document.querySelectorAll('.ai-model-option').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (currentModel !== 'general') return;
-                document.querySelectorAll('.ai-model-option').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentAiModel = btn.dataset.aiModel;
-            });
-        });
+        function selectAiModel(aiModelKey) {
+            if (currentModel !== 'general') return;
+            
+            document.querySelectorAll('.ai-model-option').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-ai-model="${aiModelKey}"]`).classList.add('active');
+            
+            currentAiModel = aiModelKey;
+            const aiNames = { gpt4: 'ChatGPT', gemini: 'Gemini' };
+            
+            addMessage('system', `🧠 เปลี่ยน AI เป็น ${aiNames[aiModelKey]} แล้วครับ!`, 'general');
+        }
 
         function openChat() {
             chatWidget.classList.add('show');
@@ -741,9 +869,13 @@
             content.className = 'message-content';
             
             let formatted = text;
+            formatted = formatted.replace(/^\s*[-•]\s+/gm, '• ');
+            formatted = formatted.replace(/^\s*\*\s+(?!\*)/gm, '• ');
+            formatted = formatted.replace(/^\s*(\d+)\.\s+/gm, '$1. ');
             formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
             formatted = formatted.replace(/\n\n+/g, '<br><br>');
             formatted = formatted.replace(/\n/g, '<br>');
+            formatted = formatted.replace(/•\s*/g, '• ');
             
             if (sender === 'ai' || sender === 'system') {
                 const model = MODEL_CONFIG[modelKey];
@@ -795,9 +927,9 @@
             const text = messageInput.value.trim();
             if (!text || isTyping) return;
 
-            // ถ้ายังไม่ได้โหลด user ให้รอก่อน
-            if (!currentUser) {
-                await fetchCurrentUser();
+            // รอให้โหลดข้อมูล User เสร็จก่อน (ถ้ายังไม่เสร็จ)
+            if (userLoadingPromise) {
+                await userLoadingPromise;
             }
 
             addMessage('user', text);
@@ -814,14 +946,6 @@
                 loginName: 'unknown',
                 source: 'not_loaded'
             };
-
-            // แสดง log การส่งข้อมูล
-            console.log('📤 ส่งข้อความ:', {
-                message: text,
-                user: userInfo,
-                department: currentModel,
-                aiModel: currentAiModel
-            });
 
             try {
                 const formData = new FormData();
@@ -863,16 +987,23 @@
                         result = jsonResult.output;
                     }
                 } catch (e) {
-                    // ถ้า parse ไม่ได้ ใช้ text เดิม
+                    // ถ้า parse ไม่ได้ แสดงว่าเป็น text ธรรมดา ใช้ result เดิม
                 }
                 
                 addMessage('ai', result || `${MODEL_CONFIG[currentModel].name} ได้รับข้อความแล้วครับ!`);
 
-                console.log('✅ ส่งและรับข้อมูลสำเร็จ');
+                // บันทึกลง SharePoint (ถ้าเปิดใช้งาน)
+                await saveToSharePointList({
+                    user: userInfo,
+                    message: text,
+                    response: result,
+                    department: currentModel,
+                    aiModel: currentModel === 'general' ? currentAiModel : 'department-specific',
+                    timestamp: new Date().toISOString()
+                });
 
             } catch (error) {
                 removeTypingIndicator();
-                console.error('❌ เกิดข้อผิดพลาด:', error);
                 addMessage('ai', `ขอภัยครับ เกิดข้อผิดพลาด: ${error.message}<br>กรุณาลองใหม่อีกครั้ง`);
             } finally {
                 sendButton.disabled = false;
@@ -880,16 +1011,19 @@
         }
 
         // เริ่มต้น Widget
-        console.log('🚀 AESCON Chat Widget เริ่มต้นแล้ว');
-        console.log('📍 URL:', window.location.href);
-        console.log('🌐 Domain:', window.location.hostname);
+        console.log('🚀 AESCON Chat Widget กำลังเริ่มต้น...');
+        console.log('Environment check:');
+        console.log('- _spPageContextInfo:', typeof _spPageContextInfo !== 'undefined' ? 'พบ ✅' : 'ไม่พบ ❌');
+        console.log('- Location:', window.location.href);
+        console.log('- SharePoint Logging:', SHAREPOINT_CONFIG.enabled ? 'เปิด ✅' : 'ปิด ❌');
         
         // โหลดข้อมูลผู้ใช้
-        fetchCurrentUser().then(user => {
-            console.log('✅ Widget พร้อมใช้งาน');
-            console.log('👤 User Info:', user);
+        userLoadingPromise = fetchCurrentUser().then(user => {
+            console.log('✅ Widget พร้อมใช้งาน - User:', user);
+            userLoadingPromise = null;
         }).catch(error => {
             console.error('❌ Error loading user:', error);
+            userLoadingPromise = null;
         });
     </script>
 </body>
