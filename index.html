@@ -153,6 +153,21 @@
             opacity: 0.9;
         }
 
+        .user-info-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 10px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .user-info-badge .user-icon {
+            font-size: 12px;
+        }
+
         .close-btn {
             background: none;
             border: none;
@@ -208,25 +223,6 @@
             background: #667eea;
             color: white;
             padding: 10px;
-        }
-
-        .current-selection {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 11px;
-            backdrop-filter: blur(10px);
-            margin-bottom: 8px;
-        }
-
-        .current-dept {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .current-ai {
-            opacity: 0.9;
-            font-size: 10px;
         }
 
         .ai-model-selector {
@@ -347,40 +343,6 @@
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
             border: 1px solid #f0f0f0;
             white-space: pre-line;
-        }
-
-        .message-content p {
-            margin: 8px 0;
-        }
-
-        .message-content p:first-child {
-            margin-top: 0;
-        }
-
-        .message-content p:last-child {
-            margin-bottom: 0;
-        }
-
-        .message-content ul,
-        .message-content ol {
-            margin: 8px 0;
-            padding-left: 20px;
-        }
-
-        .message-content li {
-            margin: 4px 0;
-            line-height: 1.6;
-        }
-
-        .message-content strong {
-            font-weight: 600;
-            color: #1a202c;
-        }
-
-        .message-content br + br {
-            display: block;
-            content: "";
-            margin-top: 8px;
         }
 
         .model-badge {
@@ -526,7 +488,11 @@
                                     <div class="status-dot"></div>
                                     <h3>AESCON Assistant</h3>
                                 </div>
-                                <div class="mascot-greeting-text">👋 สวัสดีครับ! น้องเอสมาแล้ว</div>                  
+                                <div class="mascot-greeting-text">👋 สวัสดีครับ! น้องเอสมาแล้ว</div>
+                                <div class="user-info-badge" id="userInfoBadge">
+                                    <span class="user-icon">👤</span>
+                                    <span id="userDisplayName">กำลังโหลด...</span>
+                                </div>
                             </div>
                         </div>
                         <button class="close-btn" id="closeBtn">×</button>
@@ -585,6 +551,13 @@
     <script>
         const WEBHOOK_URL = 'https://aescon.zethn8n.work/webhook/953c7856-8ba0-45cd-9540-c29fb6a785d7/chat';
         
+        // ⚙️ การตั้งค่า SharePoint List (ถ้าต้องการบันทึกลง SharePoint)
+        const SHAREPOINT_CONFIG = {
+            enabled: true, // เปลี่ยนเป็น true ถ้าต้องการบันทึก
+            listName: 'ChatbotLogs', // ชื่อ List ใน SharePoint
+            siteUrl: '' // ถ้าว่างจะใช้ current site
+        };
+        
         const MODEL_CONFIG = {
             general: { name: 'ทั่วไป', description: 'คำถามทั่วไป', icon: '💬', avatar: 'AI' },
             safety: { name: 'Safety & ENV', description: 'ความปลอดภัยและสิ่งแวดล้อม', icon: '🛡️', avatar: 'SF' },
@@ -604,6 +577,7 @@
         let isOpen = true;
         let isTyping = false;
         let currentUser = null;
+        let userLoadingPromise = null;
 
         const chatToggle = document.getElementById('chatToggle');
         const chatWidget = document.getElementById('chatWidget');
@@ -613,7 +587,203 @@
         const sendButton = document.getElementById('sendButton');
         const deptDropdown = document.getElementById('deptDropdown');
         const aiModelSelector = document.getElementById('aiModelSelector');
+        const userDisplayName = document.getElementById('userDisplayName');
 
+        // ฟังก์ชันดึงข้อมูลผู้ใช้จาก SharePoint
+        async function fetchCurrentUser() {
+            console.log('🔍 กำลังตรวจสอบข้อมูลผู้ใช้...');
+            
+            try {
+                // วิธีที่ 1: ตรวจสอบ _spPageContextInfo (เร็วที่สุด)
+                if (typeof _spPageContextInfo !== 'undefined' && _spPageContextInfo !== null) {
+                    console.log('📋 _spPageContextInfo พบ:', _spPageContextInfo);
+                    
+                    const userId = _spPageContextInfo.userId || _spPageContextInfo.userLoginName;
+                    const userEmail = _spPageContextInfo.userEmail || _spPageContextInfo.userLoginName;
+                    const displayName = _spPageContextInfo.userDisplayName || userEmail;
+                    
+                    if (userId || userEmail) {
+                        currentUser = {
+                            id: userId || 'sp_' + Date.now(),
+                            email: userEmail || 'unknown@aescon.com',
+                            loginName: _spPageContextInfo.userLoginName || userEmail || 'unknown',
+                            displayName: displayName || 'SharePoint User',
+                            timestamp: new Date().toISOString(),
+                            source: 'sharepoint_context'
+                        };
+                        console.log('✅ ใช้ข้อมูลจาก _spPageContextInfo:', currentUser);
+                        updateUserDisplay();
+                        return currentUser;
+                    }
+                }
+                
+                // วิธีที่ 2: ลอง REST API
+                try {
+                    const siteUrl = SHAREPOINT_CONFIG.siteUrl || 
+                                   (typeof _spPageContextInfo !== 'undefined' ? _spPageContextInfo.webAbsoluteUrl : '');
+                    
+                    const response = await fetch(`${siteUrl}/_api/web/currentuser`, {
+                        headers: { 'Accept': 'application/json;odata=verbose' }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const user = data.d;
+                        
+                        currentUser = {
+                            id: user.Id || 'sp_' + Date.now(),
+                            email: user.Email || user.LoginName || 'unknown@aescon.com',
+                            loginName: user.LoginName || 'unknown',
+                            displayName: user.Title || user.Email || 'SharePoint User',
+                            timestamp: new Date().toISOString(),
+                            source: 'rest_api'
+                        };
+                        console.log('✅ ใช้ข้อมูลจาก REST API:', currentUser);
+                        updateUserDisplay();
+                        return currentUser;
+                    }
+                } catch (apiError) {
+                    console.log('ℹ️ REST API ไม่สามารถใช้ได้:', apiError.message);
+                }
+                
+                // วิธีที่ 3: ดึงจาก DOM
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const selectors = [
+                    '[data-automationid="me-control"]',
+                    'button[data-testid="persona-button"]',
+                    '.ms-Persona-primaryText',
+                    '[aria-label*="@"]',
+                    '.o365cs-nav-userLink'
+                ];
+                
+                for (const selector of selectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        const displayName = element.getAttribute('title') || 
+                                          element.getAttribute('aria-label') || 
+                                          element.textContent.trim();
+                        
+                        if (displayName && displayName.length > 2) {
+                            console.log('✅ พบชื่อผู้ใช้จาก DOM:', displayName);
+                            currentUser = {
+                                id: 'sp_dom_' + Date.now(),
+                                email: displayName.includes('@') ? displayName : displayName + '@aescon.com',
+                                loginName: displayName,
+                                displayName: displayName,
+                                timestamp: new Date().toISOString(),
+                                source: 'dom_extraction'
+                            };
+                            updateUserDisplay();
+                            return currentUser;
+                        }
+                    }
+                }
+                
+                console.warn('⚠️ ไม่พบข้อมูลผู้ใช้จากทุกวิธี');
+                
+            } catch (error) {
+                console.error('❌ Error in fetchCurrentUser:', error);
+            }
+            
+            // Fallback: ใช้โหมด Guest
+            currentUser = {
+                id: 'guest_' + Date.now(),
+                email: 'guest@aescon.com',
+                loginName: 'guest_user',
+                displayName: 'Guest User',
+                timestamp: new Date().toISOString(),
+                source: 'fallback_guest'
+            };
+            console.log('⚠️ ใช้โหมด Guest:', currentUser);
+            updateUserDisplay();
+            return currentUser;
+        }
+
+        // อัปเดตการแสดงชื่อผู้ใช้
+        function updateUserDisplay() {
+            if (currentUser) {
+                const displayText = currentUser.displayName !== 'Guest User' 
+                    ? currentUser.displayName 
+                    : 'ผู้ใช้ทั่วไป';
+                userDisplayName.textContent = displayText;
+            }
+        }
+
+        // ฟังก์ชันบันทึกลง SharePoint List
+        async function saveToSharePointList(conversationData) {
+            if (!SHAREPOINT_CONFIG.enabled) {
+                console.log('ℹ️ SharePoint logging disabled');
+                return;
+            }
+
+            try {
+                const siteUrl = SHAREPOINT_CONFIG.siteUrl || 
+                               (typeof _spPageContextInfo !== 'undefined' ? _spPageContextInfo.webAbsoluteUrl : '');
+                
+                if (!siteUrl) {
+                    console.warn('⚠️ ไม่พบ Site URL สำหรับบันทึก');
+                    return;
+                }
+
+                // ดึง Request Digest Token
+                const digestResponse = await fetch(`${siteUrl}/_api/contextinfo`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json;odata=verbose',
+                        'Content-Type': 'application/json;odata=verbose'
+                    }
+                });
+
+                if (!digestResponse.ok) {
+                    throw new Error('ไม่สามารถดึง Request Digest ได้');
+                }
+
+                const digestData = await digestResponse.json();
+                const requestDigest = digestData.d.GetContextWebInformation.FormDigestValue;
+
+                // บันทึกข้อมูล
+                const itemData = {
+                    '__metadata': { 
+                        'type': `SP.Data.${SHAREPOINT_CONFIG.listName}ListItem` 
+                    },
+                    'Title': conversationData.user.displayName,
+                    'UserEmail': conversationData.user.email,
+                    'UserLoginName': conversationData.user.loginName,
+                    'UserMessage': conversationData.message,
+                    'BotResponse': conversationData.response,
+                    'Department': conversationData.department,
+                    'AIModel': conversationData.aiModel,
+                    'Timestamp': conversationData.timestamp,
+                    'UserSource': conversationData.user.source
+                };
+
+                const response = await fetch(
+                    `${siteUrl}/_api/web/lists/getbytitle('${SHAREPOINT_CONFIG.listName}')/items`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json;odata=verbose',
+                            'Content-Type': 'application/json;odata=verbose',
+                            'X-RequestDigest': requestDigest
+                        },
+                        body: JSON.stringify(itemData)
+                    }
+                );
+
+                if (response.ok) {
+                    console.log('✅ บันทึกลง SharePoint สำเร็จ');
+                } else {
+                    const errorText = await response.text();
+                    console.error('❌ บันทึกลง SharePoint ไม่สำเร็จ:', errorText);
+                }
+
+            } catch (error) {
+                console.error('❌ Error saving to SharePoint:', error);
+            }
+        }
+
+        // UI Event Handlers
         chatToggle.addEventListener('click', () => {
             isOpen ? closeChat() : openChat();
         });
@@ -757,6 +927,11 @@
             const text = messageInput.value.trim();
             if (!text || isTyping) return;
 
+            // รอให้โหลดข้อมูล User เสร็จก่อน (ถ้ายังไม่เสร็จ)
+            if (userLoadingPromise) {
+                await userLoadingPromise;
+            }
+
             addMessage('user', text);
             messageInput.value = '';
             messageInput.style.height = 'auto';
@@ -764,22 +939,24 @@
             addTypingIndicator();
             sendButton.disabled = true;
 
+            const userInfo = currentUser || {
+                id: 'unknown_' + Date.now(),
+                email: 'unknown@aescon.com',
+                displayName: 'Unknown User',
+                loginName: 'unknown',
+                source: 'not_loaded'
+            };
+
             try {
                 const formData = new FormData();
                 formData.append('message', text);
                 formData.append('model', currentModel);
-                
-                if (currentUser) {
-                    formData.append('user_id', currentUser.id || 'unknown');
-                    formData.append('user_email', currentUser.email || 'unknown@aescon.com');
-                    formData.append('user_name', currentUser.displayName || 'Unknown User');
-                    formData.append('user_source', currentUser.source || 'unknown');
-                } else {
-                    formData.append('user_id', 'guest_' + Date.now());
-                    formData.append('user_email', 'guest@aescon.com');
-                    formData.append('user_name', 'Guest User');
-                    formData.append('user_source', 'no_user_data');
-                }
+                formData.append('user_id', userInfo.id);
+                formData.append('user_email', userInfo.email);
+                formData.append('user_name', userInfo.displayName);
+                formData.append('user_login', userInfo.loginName);
+                formData.append('user_source', userInfo.source);
+                formData.append('timestamp', new Date().toISOString());
 
                 if (currentModel === 'general') {
                     formData.append('ai_model', currentAiModel);
@@ -791,8 +968,10 @@
                     headers: {
                         'X-Model-Type': currentModel,
                         'X-AI-Model': currentAiModel,
-                        'X-User-Email': currentUser?.email || 'unknown@aescon.com',
-                        'X-User-Name': currentUser?.displayName || 'Unknown User'
+                        'X-User-Email': userInfo.email,
+                        'X-User-Name': userInfo.displayName,
+                        'X-User-ID': userInfo.id,
+                        'X-User-Source': userInfo.source
                     }
                 });
 
@@ -813,6 +992,16 @@
                 
                 addMessage('ai', result || `${MODEL_CONFIG[currentModel].name} ได้รับข้อความแล้วครับ!`);
 
+                // บันทึกลง SharePoint (ถ้าเปิดใช้งาน)
+                await saveToSharePointList({
+                    user: userInfo,
+                    message: text,
+                    response: result,
+                    department: currentModel,
+                    aiModel: currentModel === 'general' ? currentAiModel : 'department-specific',
+                    timestamp: new Date().toISOString()
+                });
+
             } catch (error) {
                 removeTypingIndicator();
                 addMessage('ai', `ขอภัยครับ เกิดข้อผิดพลาด: ${error.message}<br>กรุณาลองใหม่อีกครั้ง`);
@@ -821,120 +1010,21 @@
             }
         }
 
-        async function fetchCurrentUser() {
-            console.log('🔍 กำลังตรวจสอบข้อมูลผู้ใช้...');
-            
-            try {
-                // วิธีที่ 1: ตรวจสอบ _spPageContextInfo
-                if (typeof _spPageContextInfo !== 'undefined' && _spPageContextInfo !== null) {
-                    console.log('📋 _spPageContextInfo พบ:', _spPageContextInfo);
-                    
-                    const userId = _spPageContextInfo.userId || _spPageContextInfo.userLoginName;
-                    const userEmail = _spPageContextInfo.userEmail || _spPageContextInfo.userLoginName;
-                    const displayName = _spPageContextInfo.userDisplayName || userEmail;
-                    
-                    if (userId || userEmail) {
-                        currentUser = {
-                            id: userId || 'sp_' + Date.now(),
-                            email: userEmail || 'unknown@aescon.com',
-                            loginName: _spPageContextInfo.userLoginName || userEmail || 'unknown',
-                            displayName: displayName || 'SharePoint User',
-                            timestamp: new Date().toISOString(),
-                            source: 'sharepoint_context'
-                        };
-                        console.log('✅ ใช้ข้อมูลจาก _spPageContextInfo:', currentUser);
-                        return currentUser;
-                    }
-                }
-                
-                // วิธีที่ 2: ลอง REST API
-                try {
-                    const response = await fetch('/_api/web/currentuser', {
-                        headers: { 'Accept': 'application/json;odata=verbose' }
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        const user = data.d;
-                        
-                        currentUser = {
-                            id: user.Id || 'sp_' + Date.now(),
-                            email: user.Email || user.LoginName || 'unknown@aescon.com',
-                            loginName: user.LoginName || 'unknown',
-                            displayName: user.Title || user.Email || 'SharePoint User',
-                            timestamp: new Date().toISOString(),
-                            source: 'rest_api'
-                        };
-                        console.log('✅ ใช้ข้อมูลจาก REST API:', currentUser);
-                        return currentUser;
-                    }
-                } catch (apiError) {
-                    console.log('ℹ️ REST API ไม่สามารถใช้ได้:', apiError.message);
-                }
-                
-                // วิธีที่ 3: ดึงจาก DOM
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                const selectors = [
-                    '[data-automationid="me-control"]',
-                    'button[data-testid="persona-button"]',
-                    '.ms-Persona-primaryText',
-                    '[aria-label*="@"]',
-                    '.o365cs-nav-userLink'
-                ];
-                
-                for (const selector of selectors) {
-                    const element = document.querySelector(selector);
-                    if (element) {
-                        const displayName = element.getAttribute('title') || 
-                                          element.getAttribute('aria-label') || 
-                                          element.textContent.trim();
-                        
-                        if (displayName) {
-                            console.log('✅ พบชื่อผู้ใช้จาก DOM:', displayName);
-                            currentUser = {
-                                id: 'sp_dom_' + Date.now(),
-                                email: displayName.includes('@') ? displayName : displayName + '@aescon.com',
-                                loginName: displayName,
-                                displayName: displayName,
-                                timestamp: new Date().toISOString(),
-                                source: 'dom_extraction'
-                            };
-                            return currentUser;
-                        }
-                    }
-                }
-                
-                console.warn('⚠️ ไม่พบข้อมูลผู้ใช้จากทุกวิธี');
-                
-            } catch (error) {
-                console.error('❌ Error in fetchCurrentUser:', error);
-            }
-            
-            // Fallback: ใช้โหมด Guest
-            currentUser = {
-                id: 'guest_' + Date.now(),
-                email: 'guest@aescon.com',
-                loginName: 'guest_user',
-                displayName: 'Guest User',
-                timestamp: new Date().toISOString(),
-                source: 'fallback_guest'
-            };
-            console.log('⚠️ ใช้โหมด Guest:', currentUser);
-            return currentUser;
-        }
-
         // เริ่มต้น Widget
         console.log('🚀 AESCON Chat Widget กำลังเริ่มต้น...');
         console.log('Environment check:');
         console.log('- _spPageContextInfo:', typeof _spPageContextInfo !== 'undefined' ? 'พบ ✅' : 'ไม่พบ ❌');
         console.log('- Location:', window.location.href);
+        console.log('- SharePoint Logging:', SHAREPOINT_CONFIG.enabled ? 'เปิด ✅' : 'ปิด ❌');
         
-        // เรียก fetchCurrentUser และรอให้เสร็จก่อน
-        (async () => {
-            await fetchCurrentUser();
-            console.log('✅ Widget พร้อมใช้งาน - User:', currentUser);
-        })();
+        // โหลดข้อมูลผู้ใช้
+        userLoadingPromise = fetchCurrentUser().then(user => {
+            console.log('✅ Widget พร้อมใช้งาน - User:', user);
+            userLoadingPromise = null;
+        }).catch(error => {
+            console.error('❌ Error loading user:', error);
+            userLoadingPromise = null;
+        });
     </script>
 </body>
 </html>
