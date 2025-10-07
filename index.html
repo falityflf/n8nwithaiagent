@@ -44,7 +44,6 @@
 
         .chat-toggle:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
         }
 
         .chat-toggle.active {
@@ -65,13 +64,12 @@
             flex-direction: column;
             overflow: hidden;
             border: 1px solid #e5e7eb;
-            transform-origin: bottom right;
-            animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: slideUp 0.3s ease-out;
         }
 
         @keyframes slideUp {
-            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .chat-widget.show {
@@ -83,7 +81,6 @@
             color: white;
             padding: 16px 20px;
             flex-shrink: 0;
-            border-radius: 20px 20px 0 0;
         }
 
         .header-content {
@@ -113,8 +110,6 @@
             border-radius: 50%;
             background: white;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            flex-shrink: 0;
-            object-fit: cover;
         }
 
         .title-greeting {
@@ -143,8 +138,8 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(0.95); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .mascot-greeting-text {
@@ -163,10 +158,6 @@
             gap: 6px;
         }
 
-        .user-icon {
-            font-size: 12px;
-        }
-
         .close-btn {
             background: none;
             border: none;
@@ -176,8 +167,6 @@
             padding: 4px 8px;
             border-radius: 4px;
             transition: all 0.2s;
-            line-height: 1;
-            flex-shrink: 0;
         }
 
         .close-btn:hover {
@@ -192,21 +181,14 @@
             border-radius: 12px;
             color: white;
             font-size: 13px;
-            font-weight: 500;
             cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: all 0.2s;
+            margin-bottom: 12px;
             appearance: none;
-            background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e');
+            background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e');
             background-repeat: no-repeat;
             background-position: right 10px center;
             background-size: 20px;
             padding-right: 40px;
-            margin-bottom: 12px;
-        }
-
-        .dept-dropdown:hover {
-            background: rgba(255, 255, 255, 0.3);
         }
 
         .dept-dropdown option {
@@ -218,7 +200,6 @@
             background: rgba(255, 255, 255, 0.08);
             border-radius: 8px;
             padding: 8px;
-            backdrop-filter: blur(10px);
             display: none;
         }
 
@@ -245,20 +226,14 @@
             border-radius: 12px;
             color: white;
             font-size: 10px;
-            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             text-align: center;
-        }
-
-        .ai-model-option:hover {
-            background: rgba(255, 255, 255, 0.25);
         }
 
         .ai-model-option.active {
             background: rgba(255, 255, 255, 0.9);
             color: #667eea;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
         .chat-messages {
@@ -266,20 +241,18 @@
             padding: 16px;
             overflow-y: auto;
             background: linear-gradient(180deg, #fafafa 0%, #f8f9fa 100%);
-            scroll-behavior: smooth;
         }
 
         .message {
             margin-bottom: 16px;
             display: flex;
-            align-items: flex-start;
             gap: 10px;
-            animation: messageSlide 0.4s ease-out;
+            animation: slideIn 0.3s;
         }
 
-        @keyframes messageSlide {
-            0% { opacity: 0; transform: translateY(15px); }
-            100% { opacity: 1; transform: translateY(0); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
@@ -297,7 +270,6 @@
             color: white;
             font-size: 9px;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .message.user .message-avatar {
@@ -310,27 +282,23 @@
 
         .message-content {
             max-width: 280px;
-            padding: 10px 16px 12px;
+            padding: 10px 16px;
             border-radius: 18px;
             font-size: 14px;
             line-height: 1.6;
-            word-wrap: break-word;
         }
 
         .message.user .message-content {
             background: linear-gradient(135deg, #667eea, #5a67d8);
             color: white;
             border-bottom-right-radius: 6px;
-            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.3);
         }
 
         .message.ai .message-content {
             background: white;
             color: #2d3748;
             border-bottom-left-radius: 6px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-            border: 1px solid #f0f0f0;
-            white-space: pre-line;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .model-badge {
@@ -341,41 +309,34 @@
             border-radius: 10px;
             font-size: 10px;
             font-weight: 600;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         .chat-input {
             padding: 16px 20px;
             background: white;
             border-top: 1px solid #e5e7eb;
-            flex-shrink: 0;
         }
 
         .input-container {
             display: flex;
             gap: 10px;
-            align-items: flex-end;
         }
 
         .message-input {
             flex: 1;
             min-height: 40px;
-            max-height: 100px;
             padding: 10px 16px;
             border: 2px solid #e2e8f0;
             border-radius: 20px;
             font-size: 14px;
             resize: none;
             outline: none;
-            transition: all 0.2s;
             font-family: inherit;
-            background: #fafafa;
         }
 
         .message-input:focus {
             border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .send-button {
@@ -389,13 +350,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
             font-size: 16px;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-        }
-
-        .send-button:hover:not(:disabled) {
-            transform: scale(1.05);
         }
 
         .send-button:disabled {
@@ -405,22 +360,11 @@
 
         .typing-indicator {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            gap: 4px;
             padding: 12px 16px;
             background: white;
             border-radius: 18px;
-            border-bottom-left-radius: 6px;
-            max-width: 280px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-            font-size: 13px;
-            color: #6b7280;
-            border: 1px solid #f0f0f0;
-        }
-
-        .typing-dots {
-            display: flex;
-            gap: 3px;
+            width: fit-content;
         }
 
         .typing-dot {
@@ -428,28 +372,22 @@
             height: 6px;
             background: #667eea;
             border-radius: 50%;
-            animation: typingBounce 1.4s infinite ease-in-out;
+            animation: bounce 1.4s infinite;
         }
 
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-        @keyframes typingBounce {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-            30% { transform: translateY(-8px); opacity: 1; }
-        }
-
-        .chat-messages::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: rgba(102, 126, 234, 0.3);
-            border-radius: 2px;
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-8px); }
         }
     </style>
 </head>
 <body>
+    <!-- Hidden iframe สำหรับดึงข้อมูล User -->
+    <iframe id="userDataFrame" style="display:none;"></iframe>
+
     <div class="chat-widget-container">
         <button class="chat-toggle" id="chatToggle">
             <span id="toggleIcon">💬</span>
@@ -461,17 +399,17 @@
                     <div class="header-top">
                         <div class="mascot-section">
                             <img src="https://img5.pic.in.th/file/secure-sv1/7625-removebg-preview.png" 
-                                 alt="AESCON Bot" 
+                                 alt="AESCON" 
                                  class="mascot-image"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 200 200\'%3E%3Ccircle cx=\'100\' cy=\'100\' r=\'90\' fill=\'%23a8b3c7\'/%3E%3C/svg%3E'">
+                                 onerror="this.style.display='none'">
                             <div class="title-greeting">
                                 <div class="chat-title">
                                     <div class="status-dot"></div>
                                     <h3>AESCON Assistant</h3>
                                 </div>
                                 <div class="mascot-greeting-text">👋 สวัสดีครับ!</div>
-                                <div class="user-info-badge" id="userInfoBadge">
-                                    <span class="user-icon">👤</span>
+                                <div class="user-info-badge">
+                                    <span>👤</span>
                                     <span id="userDisplayName">กำลังโหลด...</span>
                                 </div>
                             </div>
@@ -496,19 +434,19 @@
                     <div class="ai-model-selector show" id="aiModelSelector">
                         <div class="ai-model-label">🧠 เลือก AI:</div>
                         <div class="ai-model-options">
-                            <button class="ai-model-option active" data-ai-model="gpt4">ChatGPT</button>
-                            <button class="ai-model-option" data-ai-model="gemini">Gemini</button>
+                            <button class="ai-model-option active" data-model="gpt4">ChatGPT</button>
+                            <button class="ai-model-option" data-model="gemini">Gemini</button>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="chat-messages" id="chatMessages">
-                <div class="message ai general">
+                <div class="message ai">
                     <div class="message-avatar">AI</div>
                     <div class="message-content">
                         <div class="model-badge">💬 ทั่วไป</div>
-                        <strong>หมดทุกข้อสงสัย!</strong><br>น้องเอส ผู้ช่วยที่พร้อมให้บริการคุณ<br><br>เลือกแผนกที่ต้องการด้านบนได้เลยครับ
+                        <strong>หมดทุกข้อสงสัย!</strong><br>น้องเอส พร้อมช่วยเหลือคุณแล้วครับ 🚀
                     </div>
                 </div>
             </div>
@@ -557,154 +495,174 @@
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
         const deptDropdown = document.getElementById('deptDropdown');
-        const aiModelSelector = document.getElementById('aiModelSelector');
-        const userDisplayName = document.getElementById('userDisplayName');
 
-        // ฟังก์ชันดึงข้อมูลผู้ใช้ - รองรับหลายวิธี
-        async function fetchCurrentUser() {
-            console.log('🔍 กำลังดึงข้อมูลผู้ใช้...');
+        // 🎯 วิธีดึงข้อมูล User แบบใหม่ - ใช้ Hidden Iframe
+        async function fetchCurrentUserViaIframe() {
+            console.log('🔍 [วิธี 1] ดึงข้อมูลผ่าน Hidden Iframe...');
             
-            // วิธีที่ 1: ดึงจากปุ่ม "My account" บนขวาบน (ที่มี email และชื่อ)
-            await new Promise(resolve => setTimeout(resolve, 1000)); // รอให้หน้าโหลดเสร็จ
-            
-            try {
-                // หาปุ่ม My account
-                const accountButton = document.querySelector('button[id^="mectrl_currentAccount"]') ||
-                                    document.querySelector('button[aria-label*="My account"]') ||
-                                    document.querySelector('[data-automation-id="myAccountButton"]') ||
-                                    document.querySelector('button[data-testid="me-control-button"]');
+            return new Promise((resolve) => {
+                const iframe = document.getElementById('userDataFrame');
+                const apiUrl = '/_api/web/currentuser?$select=Title,Email,LoginName,Id';
                 
-                if (accountButton) {
-                    console.log('🔍 พบปุ่ม My account');
-                    
-                    // คลิกเพื่อเปิด menu
-                    accountButton.click();
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    
-                    // หา email และชื่อจาก menu ที่เปิด
-                    const accountPanel = document.querySelector('[role="dialog"]') ||
-                                       document.querySelector('.ms-Panel') ||
-                                       document.querySelector('[data-automation-id="myAccountPanel"]');
-                    
-                    if (accountPanel) {
-                        let email = '';
-                        let displayName = '';
+                iframe.onload = function() {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        const bodyText = iframeDoc.body.textContent;
                         
-                        // หา email
-                        const emailElement = accountPanel.querySelector('[data-automation-id="myaccount-email"]') ||
-                                           accountPanel.querySelector('[class*="email"]') ||
-                                           Array.from(accountPanel.querySelectorAll('*')).find(el => 
-                                               el.textContent.includes('@') && el.textContent.includes('.com')
-                                           );
-                        
-                        if (emailElement) {
-                            email = emailElement.textContent.trim();
-                            console.log('📧 พบ Email:', email);
-                        }
-                        
-                        // หาชื่อ
-                        const nameElement = accountPanel.querySelector('[data-automation-id="myaccount-displayName"]') ||
-                                          accountPanel.querySelector('h2') ||
-                                          accountPanel.querySelector('[class*="displayName"]');
-                        
-                        if (nameElement) {
-                            displayName = nameElement.textContent.trim();
-                            console.log('👤 พบชื่อ:', displayName);
-                        }
-                        
-                        // ปิด menu
-                        const closeButton = accountPanel.querySelector('button[aria-label*="Close"]') ||
-                                          accountPanel.querySelector('.ms-Panel-closeButton');
-                        if (closeButton) closeButton.click();
-                        
-                        if (email || displayName) {
+                        if (bodyText) {
+                            const data = JSON.parse(bodyText);
+                            const user = data.d || data;
+                            
                             currentUser = {
-                                id: 'sp_account_' + Date.now(),
-                                email: email || displayName + '@aescon.com',
-                                loginName: email || displayName,
-                                displayName: displayName || email || 'SharePoint User',
+                                id: user.Id || 'sp_' + Date.now(),
+                                email: user.Email || user.LoginName || 'unknown@aescon.com',
+                                loginName: user.LoginName || 'unknown',
+                                displayName: user.Title || user.Email || 'SharePoint User',
                                 timestamp: new Date().toISOString(),
-                                source: 'my_account_button'
+                                source: 'iframe_api'
                             };
-                            console.log('✅ ดึงข้อมูลจากปุ่ม My account สำเร็จ:', currentUser);
+                            
+                            console.log('✅ สำเร็จ! ดึงจาก Iframe:', currentUser);
                             updateUserDisplay();
-                            return currentUser;
+                            resolve(currentUser);
                         }
+                    } catch (error) {
+                        console.log('❌ Iframe ไม่สามารถใช้ได้:', error.message);
+                        resolve(null);
                     }
+                };
+                
+                iframe.onerror = () => {
+                    console.log('❌ Iframe load failed');
+                    resolve(null);
+                };
+                
+                iframe.src = apiUrl;
+                
+                // Timeout 3 วินาที
+                setTimeout(() => {
+                    if (!currentUser) {
+                        console.log('⏱️ Iframe timeout');
+                        resolve(null);
+                    }
+                }, 3000);
+            });
+        }
+
+        // 🎯 วิธีที่ 2: ดึงจาก window object ต่างๆ
+        async function fetchFromWindowObjects() {
+            console.log('🔍 [วิธี 2] ค้นหาใน Window Objects...');
+            
+            // ตรวจสอบ window objects ทั้งหมด
+            const possiblePaths = [
+                'window._spPageContextInfo',
+                'window.top._spPageContextInfo',
+                'window.parent._spPageContextInfo',
+                'window.opener._spPageContextInfo'
+            ];
+            
+            for (const path of possiblePaths) {
+                try {
+                    const obj = eval(path);
+                    if (obj && obj.userEmail) {
+                        currentUser = {
+                            id: obj.userId || 'sp_' + Date.now(),
+                            email: obj.userEmail || obj.userLoginName,
+                            loginName: obj.userLoginName || obj.userEmail,
+                            displayName: obj.userDisplayName || obj.userEmail,
+                            timestamp: new Date().toISOString(),
+                            source: path.replace('window.', '')
+                        };
+                        console.log(`✅ พบข้อมูลใน ${path}:`, currentUser);
+                        updateUserDisplay();
+                        return currentUser;
+                    }
+                } catch (error) {
+                    // ข้าม
                 }
-            } catch (error) {
-                console.log('ℹ️ ไม่สามารถดึงจากปุ่ม My account:', error.message);
             }
             
-            // วิธีที่ 2: SharePoint REST API
+            console.log('❌ ไม่พบข้อมูลใน Window Objects');
+            return null;
+        }
+
+        // 🎯 วิธีที่ 3: ส่ง Fetch แบบพิเศษ
+        async function fetchWithCredentials() {
+            console.log('🔍 [วิธี 3] Fetch with Credentials...');
+            
             try {
                 const response = await fetch('/_api/web/currentuser', {
-                    headers: { 'Accept': 'application/json;odata=nometadata' }
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json;odata=nometadata',
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
                 if (response.ok) {
                     const user = await response.json();
                     currentUser = {
                         id: user.Id || 'sp_' + Date.now(),
-                        email: user.Email || user.LoginName || 'unknown@aescon.com',
-                        loginName: user.LoginName || 'unknown',
-                        displayName: user.Title || user.Email || 'SharePoint User',
+                        email: user.Email || user.LoginName,
+                        loginName: user.LoginName,
+                        displayName: user.Title || user.Email,
                         timestamp: new Date().toISOString(),
-                        source: 'sp_rest_api'
+                        source: 'fetch_credentials'
                     };
-                    console.log('✅ ดึงข้อมูลจาก REST API สำเร็จ:', currentUser);
+                    console.log('✅ Fetch สำเร็จ:', currentUser);
                     updateUserDisplay();
                     return currentUser;
                 }
             } catch (error) {
-                console.log('ℹ️ REST API ไม่สามารถใช้ได้:', error.message);
+                console.log('❌ Fetch ไม่สำเร็จ:', error.message);
             }
-
-            // วิธีที่ 3: ดึงจาก DOM selectors อื่นๆ
-            const selectors = [
-                'button[id^="mectrl_currentAccount"]',
-                '[data-automation-id="myaccount-email"]',
-                '[data-automationid="me-control"]',
-                'button[data-testid="persona-button"]',
-                '.ms-Persona-primaryText',
-                '[aria-label*="@"]',
-                '.o365cs-nav-userLink'
-            ];
             
-            for (const selector of selectors) {
-                const element = document.querySelector(selector);
-                if (element) {
-                    let displayName = element.getAttribute('title') || 
-                                    element.getAttribute('aria-label') || 
-                                    element.textContent.trim();
-                    
-                    displayName = displayName.replace(/\s+/g, ' ').trim();
-                    
-                    if (displayName && displayName.length > 2 && !displayName.includes('undefined')) {
-                        console.log('✅ พบชื่อจาก DOM selector:', displayName);
-                        currentUser = {
-                            id: 'sp_dom_' + Date.now(),
-                            email: displayName.includes('@') ? displayName : displayName + '@aescon.com',
-                            loginName: displayName,
-                            displayName: displayName,
-                            timestamp: new Date().toISOString(),
-                            source: 'dom_extraction'
-                        };
-                        updateUserDisplay();
-                        return currentUser;
-                    }
-                }
-            }
+            return null;
+        }
 
-            // Fallback: ใช้โหมด Anonymous
-            console.warn('⚠️ ไม่สามารถดึงข้อมูลผู้ใช้ได้ - ใช้โหมด Anonymous');
+        // 🎯 ฟังก์ชันหลักดึงข้อมูล User
+        async function fetchCurrentUser() {
+            console.log('🚀 เริ่มดึงข้อมูลผู้ใช้...');
+            console.log('📍 URL:', window.location.href);
+            
+            // ลองทั้ง 3 วิธี
+            let user = await fetchCurrentUserViaIframe();
+            if (user) return user;
+            
+            user = await fetchFromWindowObjects();
+            if (user) return user;
+            
+            user = await fetchWithCredentials();
+            if (user) return user;
+            
+            // ถ้าไม่ได้ทั้งหมด - ดึงจาก URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const emailFromUrl = urlParams.get('user') || urlParams.get('email');
+            
+            if (emailFromUrl) {
+                currentUser = {
+                    id: 'url_' + Date.now(),
+                    email: emailFromUrl,
+                    loginName: emailFromUrl.split('@')[0],
+                    displayName: emailFromUrl.split('@')[0],
+                    timestamp: new Date().toISOString(),
+                    source: 'url_parameter'
+                };
+                console.log('✅ ดึงจาก URL Parameter:', currentUser);
+                updateUserDisplay();
+                return currentUser;
+            }
+            
+            // Fallback สุดท้าย
+            console.warn('⚠️ ไม่สามารถดึงข้อมูลได้ - ใช้ Anonymous');
             currentUser = {
                 id: 'anon_' + Date.now(),
-                email: 'anonymous@aescon.com',
-                loginName: 'anonymous',
+                email: 'user@aescon.com',
+                loginName: 'aescon_user',
                 displayName: 'ผู้ใช้ AESCON',
                 timestamp: new Date().toISOString(),
-                source: 'anonymous'
+                source: 'anonymous_fallback'
             };
             updateUserDisplay();
             return currentUser;
@@ -712,11 +670,7 @@
 
         function updateUserDisplay() {
             if (currentUser) {
-                const displayText = currentUser.displayName !== 'ผู้ใช้ AESCON' 
-                    ? currentUser.displayName 
-                    : 'ผู้ใช้ทั่วไป';
-                userDisplayName.textContent = displayText;
-                console.log('📝 แสดงชื่อผู้ใช้:', displayText);
+                document.getElementById('userDisplayName').textContent = currentUser.displayName;
             }
         }
 
@@ -726,32 +680,12 @@
         });
 
         closeBtn.addEventListener('click', closeChat);
-        sendButton.addEventListener('click', sendMessage);
-
-        deptDropdown.addEventListener('change', (e) => {
-            currentModel = e.target.value;
-            if (currentModel === 'general') {
-                aiModelSelector.classList.add('show');
-            } else {
-                aiModelSelector.classList.remove('show');
-            }
-        });
-
-        document.querySelectorAll('.ai-model-option').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (currentModel !== 'general') return;
-                document.querySelectorAll('.ai-model-option').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentAiModel = btn.dataset.aiModel;
-            });
-        });
 
         function openChat() {
             chatWidget.classList.add('show');
             chatToggle.classList.add('active');
             document.getElementById('toggleIcon').innerHTML = '×';
             isOpen = true;
-            setTimeout(() => messageInput.focus(), 300);
         }
 
         function closeChat() {
@@ -760,6 +694,19 @@
             document.getElementById('toggleIcon').innerHTML = '💬';
             isOpen = false;
         }
+
+        deptDropdown.addEventListener('change', (e) => {
+            currentModel = e.target.value;
+            document.getElementById('aiModelSelector').classList.toggle('show', currentModel === 'general');
+        });
+
+        document.querySelectorAll('.ai-model-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.ai-model-option').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentAiModel = btn.dataset.model;
+            });
+        });
 
         messageInput.addEventListener('input', function() {
             this.style.height = 'auto';
@@ -773,62 +720,52 @@
             }
         });
 
-        function addMessage(sender, text, modelKey = currentModel) {
+        sendButton.addEventListener('click', sendMessage);
+
+        function addMessage(sender, text) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender} ${modelKey}`;
+            messageDiv.className = `message ${sender}`;
             
-            if (sender !== 'system') {
-                const avatar = document.createElement('div');
-                avatar.className = 'message-avatar';
-                avatar.textContent = sender === 'user' ? 'You' : MODEL_CONFIG[modelKey].avatar;
-                messageDiv.appendChild(avatar);
-            }
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'user' ? 'You' : MODEL_CONFIG[currentModel].avatar;
             
             const content = document.createElement('div');
             content.className = 'message-content';
             
-            let formatted = text;
-            formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-            formatted = formatted.replace(/\n\n+/g, '<br><br>');
-            formatted = formatted.replace(/\n/g, '<br>');
-            
-            if (sender === 'ai' || sender === 'system') {
-                const model = MODEL_CONFIG[modelKey];
-                formatted = `<div class="model-badge">${model.icon} ${model.name}</div>` + formatted;
+            if (sender === 'ai') {
+                content.innerHTML = `<div class="model-badge">${MODEL_CONFIG[currentModel].icon} ${MODEL_CONFIG[currentModel].name}</div>` + text.replace(/\n/g, '<br>');
+            } else {
+                content.innerHTML = text.replace(/\n/g, '<br>');
             }
             
-            content.innerHTML = formatted;
+            messageDiv.appendChild(avatar);
             messageDiv.appendChild(content);
             chatMessages.appendChild(messageDiv);
-            
-            setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 100);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         function addTypingIndicator() {
-            const model = MODEL_CONFIG[currentModel];
             const typingDiv = document.createElement('div');
-            typingDiv.className = `message ai ${currentModel}`;
+            typingDiv.className = 'message ai';
             typingDiv.id = 'typingIndicator';
             
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.textContent = model.avatar;
+            avatar.textContent = MODEL_CONFIG[currentModel].avatar;
             
             const indicator = document.createElement('div');
             indicator.className = 'typing-indicator';
             indicator.innerHTML = `
-                ${model.name} กำลังพิมพ์...
-                <div class="typing-dots">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
             `;
             
             typingDiv.appendChild(avatar);
             typingDiv.appendChild(indicator);
             chatMessages.appendChild(typingDiv);
-            setTimeout(() => chatMessages.scrollTop = chatMessages.scrollHeight, 100);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
             isTyping = true;
         }
 
@@ -842,7 +779,6 @@
             const text = messageInput.value.trim();
             if (!text || isTyping) return;
 
-            // ถ้ายังไม่ได้โหลด user ให้รอก่อน
             if (!currentUser) {
                 await fetchCurrentUser();
             }
@@ -855,20 +791,13 @@
             sendButton.disabled = true;
 
             const userInfo = currentUser || {
-                id: 'unknown_' + Date.now(),
+                id: 'unknown',
                 email: 'unknown@aescon.com',
                 displayName: 'Unknown User',
-                loginName: 'unknown',
-                source: 'not_loaded'
+                source: 'error'
             };
 
-            // แสดง log การส่งข้อมูล
-            console.log('📤 ส่งข้อความ:', {
-                message: text,
-                user: userInfo,
-                department: currentModel,
-                aiModel: currentAiModel
-            });
+            console.log('📤 ส่งข้อความ:', { user: userInfo, message: text });
 
             try {
                 const formData = new FormData();
@@ -889,12 +818,8 @@
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Model-Type': currentModel,
-                        'X-AI-Model': currentAiModel,
                         'X-User-Email': userInfo.email,
-                        'X-User-Name': userInfo.displayName,
-                        'X-User-ID': userInfo.id,
-                        'X-User-Source': userInfo.source
+                        'X-User-Name': userInfo.displayName
                     }
                 });
 
@@ -905,39 +830,4 @@
                 let result = await response.text();
                 
                 try {
-                    const jsonResult = JSON.parse(result);
-                    if (jsonResult.output) {
-                        result = jsonResult.output;
-                    }
-                } catch (e) {
-                    // ถ้า parse ไม่ได้ ใช้ text เดิม
-                }
-                
-                addMessage('ai', result || `${MODEL_CONFIG[currentModel].name} ได้รับข้อความแล้วครับ!`);
-
-                console.log('✅ ส่งและรับข้อมูลสำเร็จ');
-
-            } catch (error) {
-                removeTypingIndicator();
-                console.error('❌ เกิดข้อผิดพลาด:', error);
-                addMessage('ai', `ขอภัยครับ เกิดข้อผิดพลาด: ${error.message}<br>กรุณาลองใหม่อีกครั้ง`);
-            } finally {
-                sendButton.disabled = false;
-            }
-        }
-
-        // เริ่มต้น Widget
-        console.log('🚀 AESCON Chat Widget เริ่มต้นแล้ว');
-        console.log('📍 URL:', window.location.href);
-        console.log('🌐 Domain:', window.location.hostname);
-        
-        // โหลดข้อมูลผู้ใช้
-        fetchCurrentUser().then(user => {
-            console.log('✅ Widget พร้อมใช้งาน');
-            console.log('👤 User Info:', user);
-        }).catch(error => {
-            console.error('❌ Error loading user:', error);
-        });
-    </script>
-</body>
-</html>
+                    const json = JSON.parse(result);
